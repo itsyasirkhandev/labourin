@@ -52,7 +52,7 @@ export default function LandingPage() {
             height={48}
             priority
           />
-          <span className="text-3xl font-light text-slate-300 dark:text-slate-600">
+          <span aria-hidden="true" className="text-3xl font-light text-slate-300 dark:text-slate-600">
             ×
           </span>
           <Image
@@ -89,7 +89,7 @@ export default function LandingPage() {
               href="/dashboard"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
             >
-              Open Dashboard →
+              Open Dashboard <span aria-hidden="true">→</span>
             </Link>
           </Show>
 
@@ -98,13 +98,14 @@ export default function LandingPage() {
               href="/dashboard"
               className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
             >
-              Go to Dashboard →
+              Go to Dashboard <span aria-hidden="true">→</span>
             </Link>
             <SignInButton mode="modal">
               <button
+                type="button"
                 className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-colors duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
               >
-                <LockKey size={18} weight="bold" />
+                <LockKey size={18} weight="bold" aria-hidden="true" />
                 Sign in
               </button>
             </SignInButton>
@@ -122,6 +123,7 @@ export default function LandingPage() {
             <feature.icon
               size={28}
               weight="duotone"
+              aria-hidden="true"
               className="mb-3 text-emerald-600 dark:text-emerald-400"
             />
             <h3 className="font-heading text-lg font-semibold text-slate-900 dark:text-white">
@@ -135,8 +137,8 @@ export default function LandingPage() {
       </section>
 
       {/* Footer tagline */}
-      <p className="mt-16 pb-8 text-center font-mono text-xs text-slate-400 dark:text-slate-600">
-        npx create-next-app → npx convex dev → build something real
+      <p className="mt-16 pb-8 text-center font-mono text-xs text-slate-600 dark:text-slate-400">
+        npx create-next-app <span aria-hidden="true">→</span> npx convex dev <span aria-hidden="true">→</span> build something real
       </p>
     </div>
   );

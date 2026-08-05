@@ -12,7 +12,7 @@ export default function DashboardPage() {
 
   if (viewer === undefined || numbers === undefined) {
     return (
-      <div className="flex items-center justify-center py-20">
+      <div className="flex items-center justify-center py-20" role="status" aria-live="polite">
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-slate-400 rounded-full animate-bounce"></div>
           <div
@@ -53,6 +53,7 @@ export default function DashboardPage() {
           automatically!
         </p>
         <button
+          type="button"
           className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-sm font-medium px-6 py-3 rounded-xl cursor-pointer transition-colors transition-transform transition-shadow duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] w-fit"
           onClick={() => {
             void addNumber({ value: Math.floor(Math.random() * 10) });
@@ -60,7 +61,11 @@ export default function DashboardPage() {
         >
           + Generate random number
         </button>
-        <div className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
+        <div
+          role="status"
+          aria-live="polite"
+          className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-xl p-5 shadow-sm"
+        >
           <p className="font-semibold text-slate-800 dark:text-slate-200 mb-2 text-sm">
             Newest Numbers
           </p>

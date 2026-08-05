@@ -13,7 +13,7 @@ export function AuthGuard({ children }: AuthGuardProps) {
   return (
     <>
       <ClerkLoading>
-        <div className="flex items-center justify-center min-h-screen bg-background">
+        <div className="flex items-center justify-center min-h-screen bg-background" role="status" aria-live="polite">
           <div className="flex flex-col items-center gap-4">
             <div className="w-10 h-10 rounded-full border-2 border-slate-200 dark:border-slate-800 border-t-emerald-500 animate-spin"></div>
             <p className="text-sm text-slate-500 dark:text-slate-400">Loading...</p>
@@ -57,9 +57,10 @@ export function AuthGuard({ children }: AuthGuardProps) {
               </div>
               <SignInButton mode="modal">
                 <button
+                  type="button"
                   className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 dark:bg-slate-100 dark:hover:bg-slate-200 text-white dark:text-slate-900 text-sm font-medium px-6 py-3 rounded-full cursor-pointer transition-colors transition-transform transition-shadow duration-200 shadow-md hover:shadow-lg active:scale-[0.98]"
                 >
-                  <LockKey size={18} weight="bold" />
+                  <LockKey size={18} weight="bold" aria-hidden="true" />
                   <span>Sign in</span>
                 </button>
               </SignInButton>

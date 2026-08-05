@@ -12,7 +12,11 @@ export default function Home({
   const addNumber = useMutation(api.authed.numbers.addNumber);
   return (
     <>
-      <div className="flex flex-col gap-4 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 p-6 rounded-xl shadow-md">
+      <div
+        role="status"
+        aria-live="polite"
+        className="flex flex-col gap-4 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 p-6 rounded-xl shadow-md"
+      >
         <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
           Reactive client-loaded data
         </h2>
@@ -23,6 +27,7 @@ export default function Home({
         </code>
       </div>
       <button
+        type="button"
         className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg mx-auto cursor-pointer transition-colors transition-shadow duration-200 shadow-md hover:shadow-lg font-medium"
         onClick={() => {
           void addNumber({ value: Math.floor(Math.random() * 10) });
