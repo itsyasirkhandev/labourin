@@ -16,11 +16,16 @@ Complete command and flag specifications for all fallow CLI commands.
 - [`audit`: Changed-File Quality Gate](#audit-changed-file-quality-gate)
 - [`flags`: Feature Flag Detection](#flags-feature-flag-detection)
 - [`security`: Security Candidate Detection](#security-security-candidate-detection)
+- [`inspect`: Target Evidence Bundle](#inspect-target-evidence-bundle)
+- [`trace`: Symbol Call Chains](#trace-symbol-call-chains)
+- [`decision-surface`: Structural Decisions](#decision-surface-structural-decisions)
 - [`explain`: Rule Explanation](#explain-rule-explanation)
 - [`schema`: CLI Introspection](#schema-cli-introspection)
 - [`config-schema`: Config JSON Schema](#config-schema-config-json-schema)
 - [`plugin-schema`: Plugin JSON Schema](#plugin-schema-plugin-json-schema)
+- [`plugin-check`: Verify external plugins](#plugin-check-verify-external-plugins)
 - [`rule-pack-schema`: Rule Pack JSON Schema](#rule-pack-schema-rule-pack-json-schema)
+- [`impact`: Local Impact History](#impact-local-impact-history)
 - [`config`: Show Resolved Config](#config-show-resolved-config)
 - [Global Flags](#global-flags)
 - [Environment Variables](#environment-variables)
@@ -37,63 +42,56 @@ Analyzes the project for unused files, exports, dependencies, types, members, an
 
 ### Flags
 
+<!-- generated:flags:dead-code:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--format` | `human\|json\|sarif\|compact\|markdown\|codeclimate\|gitlab-codequality\|pr-comment-github\|pr-comment-gitlab\|review-github\|review-gitlab` | `human` | Output format |
-| `--quiet` | bool | `false` | Suppress progress bars and timing on stderr |
-| `-o, --output-file` | path | (none) | Write the report to a file instead of stdout, for any `--format` (no ANSI codes). Progress and a confirmation stay on stderr (suppressed by `--quiet`). Valid with dead-code/dupes/health/security/bare; composes with `--sarif-file`. |
-| `--legacy-envelope` | bool | `false` | Remove the top-level `kind` field from typed JSON roots for one migration cycle |
-| `--changed-since` | string | - | Only analyze files changed since a git ref (e.g., `main`, `HEAD~3`) |
-| `--max-file-size` | int (MB) | `5` | Skip source files larger than N megabytes at discovery instead of parsing them (`0` disables). Guards against the OOM a single multi-MB generated/vendored/bundled file causes on large repos. `.d.ts` files are always analyzed. Skipped files appear on stderr and in `--format json` under `workspace_diagnostics` (`kind: "skipped-large-file"`). Also settable via `FALLOW_MAX_FILE_SIZE`. Global flag. |
-| `--production` | bool | `false` | Exclude test/dev files, only start/build scripts (applies to every analysis) |
-| `--no-production` | bool | `false` | Force production mode off, overriding a project config's `production: true` (applies to every analysis; conflicts with `--production`) |
-| `--production-dead-code` | bool | `false` | Per-analysis production mode for dead-code. Bare combined runs and `fallow audit` only. |
-| `--production-health` | bool | `false` | Per-analysis production mode for health. Bare combined runs and `fallow audit` only. |
-| `--production-dupes` | bool | `false` | Per-analysis production mode for duplication. Bare combined runs and `fallow audit` only. |
-| `--baseline` | path | - | Compare against a saved baseline |
-| `--save-baseline` | path | - | Save current results as a baseline |
-| `--workspace` | string | - | Scope to one or more workspaces. Comma-separated values, globs (`apps/*`, `@scope/*`), and `!`-prefixed negation (`!apps/legacy`) supported. Matched against package name AND workspace path relative to repo root. |
-| `--changed-workspaces` | string (git ref) | - | Git-derived monorepo CI scoping: scope to workspaces containing any file changed since `REF` (e.g. `origin/main`). Auto-derives the workspace set from `git diff`. Mutually exclusive with `--workspace`. Missing ref is a hard error (exit 2), not silent full-scope fallback. |
-| `--include-dupes` | bool | `false` | Cross-reference with duplication findings |
-| `--dupes-mode` | enum | `config` | Override duplicate detection mode in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --mode`. |
-| `--dupes-threshold` | number | `config` | Override the duplication percentage failure threshold in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --threshold`. |
-| `--dupes-min-tokens` | number | `config` | Override the minimum token count for clone detection in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --min-tokens`. |
-| `--dupes-min-lines` | number | `config` | Override the minimum line count for clone detection in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --min-lines`. |
-| `--dupes-min-occurrences` | number | `config` | Override the minimum clone occurrences in combined mode (must be >= 2). Falls back to the config value when unset. Mirrors the standalone `dupes --min-occurrences`. |
-| `--dupes-skip-local` | bool | `config` | Only report cross-directory duplicates in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --skip-local`. |
-| `--dupes-cross-language` | bool | `config` | Enable TypeScript to JavaScript duplicate matching in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --cross-language`. |
-| `--dupes-ignore-imports` | bool | `config` | Exclude import declarations from duplicate detection in combined mode. Falls back to the config value when unset. Mirrors the standalone `dupes --ignore-imports`. |
-| `--file` | path (multiple) | - | Scope output to specific files. Only issues in the specified files are reported. Project-wide dependency issues are suppressed. Warns on non-existent paths. Useful for lint-staged |
-| `--include-entry-exports` | bool | `false` | Report unused exports in entry files (package.json `main`/`exports`, framework pages). Catches typos like `meatdata` vs `metadata`. Global flag, also accepted on combined mode (`fallow --include-entry-exports`) and `fallow audit`. Also configurable as `includeEntryExports: true` in fallow config |
-| `--trace` | `FILE:EXPORT` | - | Trace export usage chain |
-| `--trace-file` | path | - | Show all edges for a file |
-| `--trace-dependency` | string | - | Trace where a dependency is used |
+|---|---|---|---|
+| `--include-dupes` | `bool` | `false` | Cross-reference with duplication findings |
+| `--trace` | `string` | - | Trace export usage chain |
+| `--trace-file` | `string` | - | Show all edges for a file |
+| `--trace-dependency` | `string` | - | Trace where a dependency is used |
+| `--impact-closure` | `string` | - | Compute the impact closure for a file (the transitive affected-but-not-in-diff set + coordination gap). Walks reverse-deps and re-export chains; powers the `inspect_target` MCP tool |
+| `--symbol-impact` | `string` | - | Compute exact-symbol consumers, affected files, and targeted tests |
+| `--top` | `string` | - | Show only the top N items per category |
+| `--file` | `string` | - | Scope output to specific files. Only issues in the specified files are reported. Project-wide dependency issues are suppressed. Warns on non-existent paths. Useful for lint-staged |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--output-file`](#global-flags), [`--changed-since`](#global-flags), [`--max-file-size`](#global-flags), [`--production`](#global-flags), [`--no-production`](#global-flags), [`--production-dead-code`](#global-flags), [`--baseline`](#global-flags), [`--save-baseline`](#global-flags), [`--workspace`](#global-flags), [`--changed-workspaces`](#global-flags), [`--include-entry-exports`](#global-flags).
+<!-- generated:flags:dead-code:end -->
 ### Issue Type Filters
 
+<!-- generated:flags:dead-code-filters:start -->
 | Flag | Issue Type |
-|------|------------|
+|---|---|
 | `--unused-files` | Unused files |
 | `--unused-exports` | Unused exports |
+| `--unused-deps` | Unused dependencies, devDependencies, optionalDependencies, type-only production deps, and test-only production deps |
 | `--unused-types` | Unused types |
 | `--private-type-leaks` | Opt-in API hygiene check (default `off`) for exported signatures that reference same-file private types. Storybook `*.stories.*` story files and framework routing convention files (Next.js App + Pages Router, Gatsby, Remix v2, TanStack Router, Expo Router) are skipped to avoid noise. Enable via this flag or `private-type-leaks: "warn"` / `"error"` in [`rules`](#rules-configuration). |
-| `--unused-deps` | Unused dependencies, devDependencies, optionalDependencies, type-only production deps, and test-only production deps |
 | `--unused-enum-members` | Unused enum members |
 | `--unused-class-members` | Unused class members |
+| `--unused-store-members` | Unused Pinia store members |
+| `--unprovided-injects` | inject() / getContext() reads a key that no provide() / setContext() supplies |
+| `--unrendered-components` | A Vue / Svelte component is reachable through a barrel but rendered nowhere |
+| `--unused-component-props` | A Vue defineProps prop or React component prop is referenced nowhere in its own component |
+| `--unused-component-emits` | A Vue <script setup> defineEmits event is emitted nowhere in its own component |
+| `--unused-component-inputs` | An Angular @Input() / signal input() / model() is read nowhere in its own component (class body or template); needs `@angular/core` dep |
+| `--unused-component-outputs` | An Angular @Output() / signal output() is emitted (.emit()) nowhere in its own component; needs `@angular/core` dep |
+| `--unused-svelte-events` | A Svelte createEventDispatcher event is listened to nowhere in the project |
+| `--unused-server-actions` | A Next.js Server Action exported from a "use server" file is referenced by no code in the project |
+| `--unused-load-data-keys` | A SvelteKit load() return-object key is read by no consumer |
 | `--unresolved-imports` | Unresolved imports |
 | `--unlisted-deps` | Unlisted dependencies |
 | `--duplicate-exports` | Duplicate exports |
 | `--circular-deps` | Circular dependencies |
 | `--re-export-cycles` | Re-export cycles (`kind: multi-node` for barrel files re-exporting from each other in a loop, `kind: self-loop` for a barrel re-exporting from itself). File-scoped finding; chain propagation through the loop is a no-op so imports may silently come up empty. Distinct from `--circular-deps` (runtime cycles). |
 | `--boundary-violations` | Boundary violations (imports crossing architecture zone boundaries, unzoned source files when `boundaries.coverage.requireAllFiles` is set, and forbidden calls from `boundaries.calls.forbidden`; suppression token `boundary-violation`, with `boundary-call-violation` and `boundary-call-violations` accepted as aliases for the whole family) |
-| `--policy-violations` | Rule-pack policy violations (banned calls and banned imports declared via the `rulePacks` config key) |
+| `--policy-violations` | Rule-pack policy violations (banned calls, imports, and catalogue-derived effects declared via the `rulePacks` config key) |
 | `--stale-suppressions` | Stale suppression comments or `@expected-unused` JSDoc tags |
 | `--unused-catalog-entries` | Unused pnpm catalog entries |
 | `--empty-catalog-groups` | Empty named pnpm catalog groups |
 | `--unresolved-catalog-references` | Package references to missing pnpm catalog entries |
 | `--unused-dependency-overrides` | Unused pnpm dependency overrides |
 | `--misconfigured-dependency-overrides` | Malformed pnpm dependency overrides |
-
+<!-- generated:flags:dead-code-filters:end -->
 ### Examples
 
 ```bash
@@ -134,8 +132,9 @@ fallow dead-code --format json --quiet --trace src/utils.ts:myFunction
 fallow dead-code --format json --quiet --save-baseline fallow-baselines/dead-code.json
 fallow dead-code --format json --quiet --baseline fallow-baselines/dead-code.json --fail-on-issues
 
-# Regression detection: save baseline on main, compare on PRs
+# Regression detection: update regression.baseline in the discovered config
 fallow dead-code --format json --quiet --save-regression-baseline
+# Then compare on PRs
 fallow dead-code --format json --quiet --fail-on-regression --tolerance 2%
 
 # Scope to specific files (e.g., lint-staged)
@@ -155,28 +154,23 @@ By default, `fallow dupes` skips generated framework output matching `**/.next/*
 
 ### Flags
 
+<!-- generated:flags:dupes:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--format` | `human\|json\|sarif\|compact\|markdown\|codeclimate\|gitlab-codequality\|pr-comment-github\|pr-comment-gitlab\|review-github\|review-gitlab` | `human` | Output format |
-| `--quiet` | bool | `false` | Suppress progress bars |
-| `--top` | number | - | Show only the N most-duplicated clone groups (sorted by instance count desc, tiebreak: line count desc, then path/line). Summary stats reflect the full project. |
-| `--mode` | `strict\|mild\|weak\|semantic` | `mild` | Detection mode |
-| `--min-tokens` | number | `50` | Minimum token count for a clone |
-| `--min-lines` | number | `5` | Minimum line count for a clone |
-| `--min-occurrences` | number | `2` | Minimum number of occurrences before a clone group is reported (must be ≥ 2). Raise to skip pair-only clones and focus on widespread copy-paste worth refactoring. `fallow init` writes `minOccurrences: 3` into new projects. |
-| `--threshold` | number | `0` | Fail if duplication exceeds this percentage |
-| `--skip-local` | bool | `false` | Only report cross-directory duplicates |
-| `--cross-language` | bool | `false` | Strip type annotations for TS↔JS matching |
-| `--ignore-imports` | bool | `false` | Exclude import declarations from clone detection |
-| `--explain-skipped` | bool | `false` | Human/markdown only: show per-pattern counts for files skipped by default duplicates ignores |
-| `--trace` | `FILE:LINE` \| `dup:<fp>` | - | Deep-dive clones. `FILE:LINE` traces all clones at a location; `dup:<id>` traces a clone group by the stable fingerprint shown in the listing and on `clone_groups[].fingerprint` in JSON. Fingerprints are usually `dup:<8hex>` and widen only on rare report collisions. Trace output adds an extract-function suggestion, estimated savings, and a best-effort proposed name per group |
-| `--changed-since` | string | - | Only report duplication in files changed since a git ref |
-| `--baseline` | path | - | Compare against baseline |
-| `--save-baseline` | path | - | Save results as baseline |
-| `--workspace` | string | - | Scope to one or more workspaces. Comma-separated values, globs (`apps/*`, `@scope/*`), and `!`-prefixed negation (`!apps/legacy`) supported. Matched against package name AND workspace path relative to repo root. |
-| `--changed-workspaces` | string (git ref) | - | Git-derived monorepo CI scoping: scope to workspaces containing any file changed since `REF`. Mutually exclusive with `--workspace`. Missing ref is a hard error. |
-| `--group-by` | `owner\|directory\|package\|section` | - | Partition the report into per-group sections. Each clone group is attributed to its **largest owner** (most instances; alphabetical tiebreak): a group split 2 src / 1 lib appears under `src`. JSON adds `grouped_by` plus a `groups` array; each bucket carries dedup-aware `stats`, `clone_groups` (every group tagged with `primary_owner` and per-instance `owner`), and `clone_families`. SARIF results carry `properties.group`, CodeClimate issues a top-level `group` field. Compact and markdown fall back to ungrouped with a stderr note. |
+|---|---|---|---|
+| `--mode` | `strict\|mild\|weak\|semantic` | - | Detection mode |
+| `--min-tokens` | `string` | - | Minimum token count for a clone |
+| `--min-lines` | `string` | - | Minimum line count for a clone |
+| `--min-occurrences` | `string` | - | Minimum number of occurrences before a clone group is reported (must be ≥ 2). Raise to skip pair-only clones and focus on widespread copy-paste worth refactoring. `fallow init` writes `minOccurrences: 3` into new projects. |
+| `--threshold` | `string` | - | Fail if duplication exceeds this percentage |
+| `--skip-local` | `bool` | `false` | Only report cross-directory duplicates |
+| `--cross-language` | `bool` | `false` | Strip type annotations for TS↔JS matching |
+| `--ignore-imports` | `bool` | `false` | Exclude module wiring from clone detection |
+| `--no-ignore-imports` | `bool` | `false` | Count module wiring as clone candidates (opt out of the default exclusion) |
+| `--top` | `string` | - | Show only the N most-duplicated clone groups (sorted by instance count desc, tiebreak: line count desc, then path/line). Summary stats reflect the full project. |
+| `--trace` | `string` | - | Deep-dive clones. `FILE:LINE` traces all clones at a location; `dup:<id>` traces a clone group by the stable fingerprint shown in the listing and on `clone_groups[].fingerprint` in JSON. Fingerprints are usually `dup:<8hex>` and widen only on rare report collisions. Trace output adds an extract-function suggestion, estimated savings, and a best-effort proposed name per group |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--changed-since`](#global-flags), [`--baseline`](#global-flags), [`--save-baseline`](#global-flags), [`--workspace`](#global-flags), [`--changed-workspaces`](#global-flags), [`--group-by`](#global-flags), [`--explain-skipped`](#global-flags).
+<!-- generated:flags:dupes:end -->
 ### Detection Modes
 
 | Mode | Behavior |
@@ -220,15 +214,15 @@ Auto-removes unused exports, dependencies, enum members, and pnpm catalog entrie
 
 ### Flags
 
+<!-- generated:flags:fix:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--dry-run` | bool | `false` | Show what would be removed without modifying files. For `add-to-config` actions, prints a unified-diff preview of the proposed config write; JSON mode includes the diff under a `proposed_diff` field on the fix entry. |
-| `--yes` | bool | `false` | Skip confirmation prompt (**required** in non-TTY) |
-| `--force` | bool | `false` | Alias for `--yes` |
-| `--no-create-config` | bool | `false` | Refuse to create a new `.fallowrc.json` when none exists. The duplicate-export config-add path is skipped with `skip_reason: "no_create_config"`; source-file edits proceed normally. Use in pre-commit hooks, CI bots, and `fallow watch` where silently materialising a new top-level file would surprise the user. |
-| `--format` | `human\|json` | `human` | Output format |
-| `--quiet` | bool | `false` | Suppress progress bars |
+|---|---|---|---|
+| `--dry-run` | `bool` | `false` | Show what would be removed without modifying files. For `add-to-config` actions, prints a unified-diff preview of the proposed config write; JSON mode includes the diff under a `proposed_diff` field on the fix entry. |
+| `--yes` | `bool` | `false` | Skip confirmation prompt (**required** in non-TTY) |
+| `--no-create-config` | `bool` | `false` | Refuse to create a new `.fallowrc.json` when none exists. The duplicate-export config-add path is skipped with `skip_reason: "no_create_config"`; source-file edits proceed normally. Use in pre-commit hooks, CI bots, and `fallow watch` where silently materialising a new top-level file would surprise the user. |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags).
+<!-- generated:flags:fix:end -->
 ### What gets fixed
 
 - Unused exports (removes the `export` keyword; whole-enum block when every member is unused)
@@ -278,16 +272,17 @@ Inspect discovered files, entry points, detected frameworks, and architecture bo
 
 ### Flags
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--files` | bool | List all discovered files |
-| `--entry-points` | bool | List detected entry points |
-| `--plugins` | bool | List active framework plugins |
-| `--boundaries` | bool | Show architecture boundary zones, rules, per-zone file counts, and `logical_groups[]` for `autoDiscover` parents |
-| `--workspaces` | bool | Show discovered monorepo workspaces plus any workspace-discovery diagnostics (malformed `package.json`, unreachable glob matches, missing tsconfig references). Available as the `fallow workspaces` alias too. |
-| `--format` | `human\|json` | Output format |
-| `--quiet` | bool | Suppress progress bars |
+<!-- generated:flags:list:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--entry-points` | `bool` | `false` | List detected entry points |
+| `--files` | `bool` | `false` | List all discovered files |
+| `--plugins` | `bool` | `false` | List active framework plugins |
+| `--boundaries` | `bool` | `false` | Show architecture boundary zones, rules, per-zone file counts, and `logical_groups[]` for `autoDiscover` parents |
+| `--workspaces` | `bool` | `false` | Show discovered monorepo workspaces plus any workspace-discovery diagnostics (malformed `package.json`, unreachable glob matches, missing tsconfig references). Available as the `fallow workspaces` alias too. |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags).
+<!-- generated:flags:list:end -->
 ### Examples
 
 ```bash
@@ -311,13 +306,17 @@ Creates a config file in the project root.
 
 ### Flags
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--toml` | bool | Create `fallow.toml` instead of `.fallowrc.json` |
-| `--agents` | bool | Scaffold a starter `AGENTS.md` guide for coding agents. Prefills Install (from the `packageManager` field, or pnpm via `pnpm-workspace.yaml`), Test (only when exactly one of Vitest / Jest / Playwright is present), Typecheck (`tsc --noEmit` when `tsconfig.json` exists), and monorepo module-boundary lines; everything ambiguous stays blank (no lockfile sniffing). Prefilled command lines carry an HTML provenance comment. Refuses to overwrite an existing `AGENTS.md` |
-| `--hooks` | bool | Scaffold a pre-commit git hook that runs `fallow audit --base <ref> --quiet`. Alias for `fallow hooks install --target git` |
-| `--branch` | string | Fallback base branch for the pre-commit hook when no upstream is set (default: `main`). Only used with `--hooks` |
+<!-- generated:flags:init:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--toml` | `bool` | `false` | Create `fallow.toml` instead of `.fallowrc.json` |
+| `--agents` | `bool` | `false` | Scaffold a starter `AGENTS.md` guide for coding agents. Prefills Install (from the `packageManager` field, or pnpm via `pnpm-workspace.yaml`), Test (only when exactly one of Vitest / Jest / Playwright is present), Typecheck (`tsc --noEmit` when `tsconfig.json` exists), and monorepo module-boundary lines; everything ambiguous stays blank (no lockfile sniffing). Prefilled command lines carry an HTML provenance comment. Refuses to overwrite an existing `AGENTS.md` |
+| `--hooks` | `bool` | `false` | Scaffold a pre-commit git hook that runs `fallow audit --base <ref> --quiet --gate-marker pre-commit`. Alias for `fallow hooks install --target git` |
+| `--branch` | `string` | - | Fallback base branch for the pre-commit hook when no upstream is set (default: `main`). Only used with `--hooks` |
+| `--decline` | `bool` | `false` | Record that this project deliberately stays unconfigured: persists a decline so the first-contact setup hint and the `setup` next-step stop appearing here. Writes no config file; idempotent |
 
+Common global flags for this command: [`--root`](#global-flags), [`--config`](#global-flags).
+<!-- generated:flags:init:end -->
 ### Examples
 
 ```bash
@@ -328,6 +327,18 @@ fallow hooks install --target git
 fallow hooks install --target git --branch develop  # fallback base branch when no upstream is set
 ```
 
+## `hooks`: Managed Hook Status And Installation
+
+```bash
+fallow hooks status --format json
+fallow hooks install --target git
+fallow hooks install --target agent
+fallow hooks uninstall --target git
+fallow hooks uninstall --target agent
+```
+
+`hooks status` is read-only and reports `git`, `claude`, and `codex` surfaces. Each surface includes `installed`, `managed_block_present`, `user_edited`, and `path`; generated agent scripts also include `script_version` and `min_version_floor`. Use it before mutating setup so agents can distinguish fallow-managed artifacts from user-owned hooks or partial managed blocks.
+
 ---
 
 ## `migrate`: Config Migration
@@ -336,13 +347,16 @@ Migrates configuration from knip and/or jscpd to fallow. Auto-detects config fil
 
 ### Flags
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--toml` | bool | Output as `fallow.toml` (mutually exclusive with `--jsonc`) |
-| `--jsonc` | bool | Write to `.fallowrc.jsonc` instead of `.fallowrc.json`. Same JSONC content either way; the `.jsonc` extension lets editors auto-detect JSON-with-comments syntax highlighting |
-| `--dry-run` | bool | Preview without writing |
-| `--from` | path | Specify source config file path |
+<!-- generated:flags:migrate:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--toml` | `bool` | `false` | Output as `fallow.toml` (mutually exclusive with `--jsonc`) |
+| `--jsonc` | `bool` | `false` | Write to `.fallowrc.jsonc` instead of `.fallowrc.json`. Same JSONC content either way; the `.jsonc` extension lets editors auto-detect JSON-with-comments syntax highlighting |
+| `--dry-run` | `bool` | `false` | Preview without writing |
+| `--from` | `string` | - | Specify source config file path |
 
+Common global flags for this command: [`--root`](#global-flags), [`--config`](#global-flags).
+<!-- generated:flags:migrate:end -->
 Without `--jsonc` or `--toml`, fallow auto-mirrors the source extension: a `knip.jsonc` migration writes `.fallowrc.jsonc`, a `knip.json` migration writes `.fallowrc.json`.
 
 ### Detected Source Configs
@@ -372,45 +386,42 @@ Angular templates contribute synthetic `<template>` complexity findings whenever
 
 ### Flags
 
+<!-- generated:flags:health:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--format` | `human\|json\|sarif\|compact\|markdown\|codeclimate\|gitlab-codequality\|pr-comment-github\|pr-comment-gitlab\|review-github\|review-gitlab\|badge` | `human` | Output format |
-| `--quiet` | bool | `false` | Suppress progress bars |
-| `--max-cyclomatic` | number | `20` | Fail if any function exceeds this cyclomatic complexity |
-| `--max-cognitive` | number | `15` | Fail if any function exceeds this cognitive complexity |
-| `--max-crap` | number | `30.0` | Fail if any function has CRAP score >= threshold. CRAP combines complexity with coverage (`CC^2 * (1 - cov/100)^3 + CC`). Pair with `--coverage` for accurate per-function CRAP; without Istanbul data fallow estimates coverage from the module graph. |
-| `--top` | number | - | Only show the top N most complex functions (and file scores/hotspots/targets) |
-| `--sort` | `cyclomatic\|cognitive\|lines\|severity` | `cyclomatic` | Sort order for complexity findings |
-| `--complexity` | bool | `false` | Show only function complexity findings. When no section flags are set, all sections are shown by default. |
-| `--complexity-breakdown` | bool | `false` | Add a per-decision-point `contributions[]` array to each complexity finding in `--format json`. Each entry names the construct (`if`, `else-if`, `ternary`, boolean operator, loop, `case`, `catch`, `optional-chain`, ...) and carries its source line, the metric it adds to (`cyclomatic` or `cognitive`), its weight, and the nesting depth, so a consumer can explain WHY a function scored high. Off by default (no change to existing JSON/SARIF/markdown). Used by the VS Code inline editor breakdown and the MCP `check_health` `complexity_breakdown` param. |
-| `--file-scores` | bool | `false` | Show only per-file health scores (maintainability index, LOC, fan-in, fan-out, dead code ratio, complexity density, CRAP risk). Runs the full analysis pipeline. Sorted by risk-aware triage concern: lower maintainability index and higher CRAP risk first. When no section flags are set, all sections are shown by default. |
-| `--hotspots` | bool | `false` | Show only hotspots: files that are both complex and frequently changing. Combines git churn history with complexity data. Requires a git repository. When no section flags are set, all sections are shown by default. |
-| `--targets` | bool | `false` | Show only refactoring targets: ranked recommendations based on complexity, coupling, churn, and dead code signals. Categories: churn+complexity, circular dep, high impact, dead code, complexity, coupling. When no section flags are set, all sections are shown by default. Each target's JSON can include `direct_callers[]` (direct importers with the symbols they import) and `clone_siblings[]` (duplicate-code siblings with stable `dup:<8hex>` fingerprints for `fallow dupes --trace`); both omitted when empty. Human output adds `importers:` / `clones:` lines only when that evidence is present. |
+|---|---|---|---|
+| `--max-cyclomatic` | `string` | - | Fail if any function exceeds this cyclomatic complexity |
+| `--max-cognitive` | `string` | - | Fail if any function exceeds this cognitive complexity |
+| `--max-crap` | `string` | - | Fail if any function has CRAP score >= threshold. CRAP combines complexity with coverage (`CC^2 * (1 - cov/100)^3 + CC`). Pair with `--coverage` for accurate per-function CRAP; without Istanbul data fallow estimates coverage from the module graph. |
+| `--top` | `string` | - | Only show the top N most complex functions (and file scores/hotspots/targets) |
+| `--sort` | `severity\|cyclomatic\|cognitive\|lines` | `cyclomatic` | Sort order for complexity findings |
+| `--complexity` | `bool` | `false` | Show only function complexity findings. When no section flags are set, all sections are shown by default. |
+| `--complexity-breakdown` | `bool` | `false` | Add a per-decision-point `contributions[]` array to each complexity finding in `--format json`. Each entry names the construct (`if`, `else-if`, `ternary`, boolean operator, loop, `case`, `catch`, `optional-chain`, ...) and carries its source line, the metric it adds to (`cyclomatic` or `cognitive`), its weight, and the nesting depth, so a consumer can explain WHY a function scored high. Off by default (no change to existing JSON/SARIF/markdown). Used by the VS Code inline editor breakdown and the MCP `check_health` `complexity_breakdown` param. |
+| `--file-scores` | `bool` | `false` | Show only per-file health scores (maintainability index, LOC, fan-in, fan-out, dead code ratio, complexity density, CRAP risk). Runs the full analysis pipeline. Sorted by risk-aware triage concern: lower maintainability index and higher CRAP risk first. When no section flags are set, all sections are shown by default. |
+| `--coverage-gaps` | `bool` | `false` | Show runtime files and exports that no test dependency path reaches. Opt-in (default off). Configure severity via the `coverage-gaps` rule (`error`/`warn`/`off`). |
+| `--hotspots` | `bool` | `false` | Show only hotspots: files that are both complex and frequently changing. Combines git churn history with complexity data. Requires a git repository. When no section flags are set, all sections are shown by default. |
+| `--ownership` | `bool` | `false` | Attach ownership signals to hotspot entries: bus factor (Avelino truck factor), contributor count, top contributor with stale-days, recent contributors (top-3), `suggested_reviewers`, declared CODEOWNERS owner, `ownership_state`, ownership drift, unowned-hotspot detection. Human output gains a project-level summary line. JSON adds `low-bus-factor`, `unowned-hotspot`, `ownership-drift` action types. Test files get a `[test]` tag. Implies `--hotspots`. Requires git. |
+| `--ownership-emails` | `raw\|handle\|anonymized\|hash` | - | Privacy mode for author emails. `handle` shows the local-part only (default, with GitHub noreply unwrap and deterministic same-handle disambiguation). `anonymized` emits stable `xxh3:` pseudonyms; `hash` remains accepted as the legacy spelling. `raw` shows full addresses. Use `anonymized` in regulated environments. Implies `--ownership`. Configure default via `health.ownership.emailMode`. |
+| `--targets` | `bool` | `false` | Show only refactoring targets: ranked recommendations based on complexity, coupling, churn, and dead code signals. Categories: churn+complexity, circular dep, high impact, dead code, complexity, coupling. When no section flags are set, all sections are shown by default. Each target's JSON can include `direct_callers[]` (direct importers with the symbols they import) and `clone_siblings[]` (duplicate-code siblings with stable `dup:<8hex>` fingerprints for `fallow dupes --trace`); both omitted when empty. Human output adds `importers:` / `clones:` lines only when that evidence is present. |
+| `--type-coupling` | `bool` | `false` | Show advisory project-local public-signature type coupling. Requires type-aware analysis and does not change the health score |
+| `--css` | `bool` | `false` | Add structural CSS analytics: specificity hotspots, !important density, over-complex selectors, deep nesting, and conservative cleanup candidates. Standard CSS is parsed structurally; preprocessor sources are scanned only where fallow can avoid expanding Sass/Less semantics. Also derives `styling_health`, a descriptive A-F grade for CSS quality scored separately from the code `health_score` (never gates); it weights design-token drift (hardcoded value sprawl) over byte-identical repetition. |
 | `--effort` | `low\|medium\|high` | - | Filter refactoring targets by effort level. Implies `--targets`. |
-| `--score` | bool | `false` | Show only the project health score (0-100) with letter grade (A/B/C/D/F). The score is included by default when no section flags are set. JSON includes `health_score` object with `score`, `grade`, and `penalties` breakdown. As of v2.55.0, plain `--score` skips the churn-backed hotspot penalty so it does not run a `git log` shell-out per invocation; pass `--hotspots` (or `--targets` with `--score`) to include the hotspot penalty. Snapshot (`--save-snapshot`) and trend (`--trend`) flows still trigger hotspot vital signs so saved data stays complete. |
-| `--min-score` | number | - | Fail (exit 1) only when the health score is below this threshold. Implies `--score`. Authoritative CI quality gate: when set, complexity findings are demoted to informational and the exit code is driven solely by the score, so `--min-score 0` always exits 0. Composes with `--min-severity`. |
+| `--score` | `bool` | `false` | Show only the project health score (0-100) with letter grade (A/B/C/D/F). The score is included by default when no section flags are set. JSON includes `health_score` object with `score`, `grade`, and `penalties` breakdown. As of v2.55.0, plain `--score` skips the churn-backed hotspot penalty so it does not run a `git log` shell-out per invocation; pass `--hotspots` (or `--targets` with `--score`) to include the hotspot penalty. Snapshot (`--save-snapshot`) and trend (`--trend`) flows still trigger hotspot vital signs so saved data stays complete. |
+| `--min-score` | `string` | - | Fail (exit 1) only when the health score is below this threshold. Implies `--score`. Authoritative CI quality gate: when set, complexity findings are demoted to informational and the exit code is driven solely by the score, so `--min-score 0` always exits 0. Composes with `--min-severity`. |
 | `--min-severity` | `moderate\|high\|critical` | - | Only exit with an error for findings at or above this severity. Composes with `--min-score` (the run fails if either gate trips). |
-| `--report-only` | bool | `false` | Print the score and findings but never fail CI (always exit 0). Advisory mode. Mutually exclusive with `--min-score` and `--min-severity`. |
-| `--since` | string | `6m` | Git history window for hotspot analysis. Accepts durations (`6m`, `90d`, `1y`, `2w`) or ISO dates (`2025-06-01`). Ignored when `--churn-file` is set. |
-| `--min-commits` | number | `3` | Minimum number of commits for a file to be included in hotspot ranking. |
-| `--churn-file` | string | (none) | Import change history from a `fallow-churn/v1` JSON file (`{schema, events:[{path, timestamp, author, added, deleted}]}`, one entry per changed file per commit) instead of `git log`, so `--hotspots`/`--ownership`/`--targets` work on non-git VCS (Yandex Arc, Mercurial, Perforce). Resolved relative to `--root`; wins over git. Authoritative for the window, so `--since` then only labels output. Malformed file exits 2; `audit`/`impact`/`--changed-since` still require git. |
-| `--ownership` | bool | `false` | Attach ownership signals to hotspot entries: bus factor (Avelino truck factor), contributor count, top contributor with stale-days, recent contributors (top-3), `suggested_reviewers`, declared CODEOWNERS owner, `ownership_state`, ownership drift, unowned-hotspot detection. Human output gains a project-level summary line. JSON adds `low-bus-factor`, `unowned-hotspot`, `ownership-drift` action types. Test files get a `[test]` tag. Implies `--hotspots`. Requires git. |
-| `--ownership-emails` | `raw\|handle\|anonymized\|hash` | `handle` | Privacy mode for author emails. `handle` shows the local-part only (default, with GitHub noreply unwrap and deterministic same-handle disambiguation). `anonymized` emits stable `xxh3:` pseudonyms; `hash` remains accepted as the legacy spelling. `raw` shows full addresses. Use `anonymized` in regulated environments. Implies `--ownership`. Configure default via `health.ownership.emailMode`. |
-| `--changed-since` | string | - | Only analyze files changed since a git ref |
-| `--workspace` | string | - | Scope to one or more workspaces. Comma-separated values, globs (`apps/*`, `@scope/*`), and `!`-prefixed negation (`!apps/legacy`) supported. Matched against package name AND workspace path relative to repo root. Vital signs, health score, hotspots, file scores, findings, and `summary.files_analyzed` are all recomputed against the scoped subset. |
-| `--group-by` | `owner\|directory\|package\|section` | - | Partition the report into per-group sections. JSON adds `grouped_by` plus a `groups` array; each group contains its own `vital_signs`, `health_score`, `findings`, `file_scores`, `hotspots`, `large_functions`, and `targets` recomputed against the group's files. The top-level metrics stay project-wide so consumers that ignore grouping still see the project headline. Human output adds a per-group score / files / hot / p90 summary block (sorted worst-first when `--score`). SARIF results carry `properties.group` and CodeClimate issues carry a top-level `group` field so GitHub Code Scanning / GitLab Code Quality can partition per team / package. Compact, markdown, and badge fall back to ungrouped output with a stderr note. |
-| `--baseline` | path | - | Compare against a saved baseline. When set, the JSON `actions` array on each finding omits `suppress-line` (the baseline already suppresses) and the report root carries an `actions_meta: { suppression_hints_omitted: true, reason: "baseline-active" }` breadcrumb. |
-| `--save-baseline` | path | - | Save current results as a baseline. Same `suppress-line` omission as `--baseline`. |
-| `--save-snapshot` | path (optional) | `.fallow/snapshots/<timestamp>.json` | Save vital signs snapshot for trend tracking. Forces file-scores + hotspot computation. |
-| `--trend` | bool | `false` | Compare current metrics against the most recent saved snapshot. Reads from `.fallow/snapshots/` and shows per-metric deltas with directional indicators (improving/declining/stable). Implies `--score`. |
-| `--coverage-gaps` | bool | `false` | Show runtime files and exports that no test dependency path reaches. Opt-in (default off). Configure severity via the `coverage-gaps` rule (`error`/`warn`/`off`). |
-| `--coverage` | path | none | Path to Istanbul-format coverage data (`coverage-final.json`) for accurate per-function CRAP scores. Uses `CC^2 * (1-cov/100)^3 + CC` instead of static binary model. Relative paths resolve against `--root`. |
-| `--coverage-root` | path | none | Absolute prefix to strip from file paths in coverage data before prepending the project root. For CI/Docker environments where coverage was generated with different absolute paths. |
-| `--runtime-coverage` | path | none | Merge runtime-coverage input into the health report. Accepts a V8 coverage directory (`NODE_V8_COVERAGE=...`), a single V8 coverage JSON file, or an Istanbul `coverage-final.json`. One local capture is free and does not require a license; continuous/cloud or multi-capture runtime monitoring requires an active license or trial (`fallow license activate --trial --email <addr>`). JSON output gains a `runtime_coverage` object with a top-level report verdict, per-finding `verdict` (`safe_to_delete` / `review_required` / `low_traffic` / `coverage_unavailable` / `active`), a per-finding suppression `id` (`fallow:prod:<hash>`, hashes the current line), an optional cross-surface `stable_id` join key (`fallow:fn:<hash>`, hashes file + name + start line; one value per function across findings / hot-paths / blast-radius / importance and across V8/Istanbul/oxc producers), an optional content-digest `source_hash` (line-move-immune, so baselines survive a pure line shift), an evidence block, and percentile-ranked hot paths. On protocol-0.3+ sidecars the `summary` also carries an optional `capture_quality` block (`window_seconds`, `instances_observed`, `lazy_parse_warning`, `untracked_ratio_percent`) that flags short-window captures where lazy-parsed scripts may not appear. |
-| `--min-invocations-hot` | number | `100` | Invocation threshold for hot-path classification. Takes effect only when `--runtime-coverage` is set. |
-| `--min-observation-volume` | number | `5000` | Minimum total trace volume before the sidecar may emit high-confidence `safe_to_delete` / `review_required` verdicts. Below this, confidence is capped at `medium`. |
-| `--low-traffic-threshold` | number | `0.001` | Fraction of total trace count below which an invoked function is classified `low_traffic` rather than `active`. Expressed as a decimal (0.001 = 0.1%). |
+| `--report-only` | `bool` | `false` | Print the score and findings but never fail CI (always exit 0). Advisory mode. Mutually exclusive with `--min-score` and `--min-severity`. |
+| `--since` | `string` | - | Git history window for hotspot analysis. Accepts durations (`6m`, `90d`, `1y`, `2w`) or ISO dates (`2025-06-01`). Ignored when `--churn-file` is set. |
+| `--min-commits` | `string` | - | Minimum number of commits for a file to be included in hotspot ranking. |
+| `--save-snapshot` | `string` | - | Save vital signs snapshot for trend tracking. Forces file-scores + hotspot computation. |
+| `--trend` | `bool` | `false` | Compare current metrics against the most recent saved snapshot. Reads from `.fallow/snapshots/` and shows per-metric deltas with directional indicators (improving/declining/stable). Implies `--score`. |
+| `--coverage` | `string` | - | Path to Istanbul-format coverage data (`coverage-final.json`) for accurate per-function CRAP scores. Uses `CC^2 * (1-cov/100)^3 + CC` instead of static binary model. Relative paths resolve against `--root`. Falls back to `FALLOW_COVERAGE`, then `health.coverage`, then auto-detection. |
+| `--coverage-root` | `string` | - | Absolute prefix to strip from file paths in coverage data before prepending the project root. For CI/Docker environments where coverage was generated with different absolute paths. Falls back to `FALLOW_COVERAGE_ROOT`, then `health.coverageRoot`. |
+| `--runtime-coverage` | `string` | - | Merge runtime-coverage input into the health report. Accepts a V8 coverage directory (`NODE_V8_COVERAGE=...`), a single V8 coverage JSON file, or an Istanbul `coverage-final.json`. One local capture is free and does not require a license; continuous/cloud or multi-capture runtime monitoring requires an active license or trial (`fallow license activate --trial --email <addr>`). JSON output gains a `runtime_coverage` object with a top-level report verdict, per-finding `verdict` (`safe_to_delete` / `review_required` / `low_traffic` / `coverage_unavailable` / `active`), a per-finding suppression `id` (`fallow:prod:<hash>`, hashes the current line), an optional cross-surface `stable_id` join key (`fallow:fn:<hash>`, hashes file + name + start line; one value per function across findings / hot-paths / blast-radius / importance and across V8/Istanbul/oxc producers), an optional content-digest `source_hash` (line-move-immune, so baselines survive a pure line shift), an evidence block, and percentile-ranked hot paths. On protocol-0.3+ sidecars the `summary` also carries an optional `capture_quality` block (`window_seconds`, `instances_observed`, `lazy_parse_warning`, `untracked_ratio_percent`) that flags short-window captures where lazy-parsed scripts may not appear. |
+| `--min-invocations-hot` | `string` | `100` | Invocation threshold for hot-path classification. Takes effect only when `--runtime-coverage` is set. |
+| `--min-observation-volume` | `string` | - | Minimum total trace volume before the sidecar may emit high-confidence `safe_to_delete` / `review_required` verdicts. Below this, confidence is capped at `medium`. |
+| `--low-traffic-threshold` | `string` | - | Fraction of total trace count below which an invoked function is classified `low_traffic` rather than `active`. Expressed as a decimal (0.001 = 0.1%). |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--changed-since`](#global-flags), [`--churn-file`](#global-flags), [`--workspace`](#global-flags), [`--group-by`](#global-flags), [`--baseline`](#global-flags), [`--baseline-mode`](#global-flags), [`--save-baseline`](#global-flags), [`--production`](#global-flags), [`--no-production`](#global-flags), [`--explain`](#global-flags).
+<!-- generated:flags:health:end -->
 ### Exit Codes
 
 The gate flag in play determines what drives the exit code. Plain `fallow health` (no gate flag) stays advisory but still fails on any finding (back-compat).
@@ -462,6 +473,10 @@ fallow health --format json --quiet --workspace my-package
 fallow health --format json --quiet --save-baseline fallow-baselines/health.json
 fallow health --format json --quiet --baseline fallow-baselines/health.json
 
+# Strict adoption: a hotspot that replaces a baselined hotspot is reported
+fallow health --format json --quiet --save-baseline fallow-baselines/health.json --baseline-mode identity
+fallow health --format json --quiet --baseline fallow-baselines/health.json --baseline-mode identity
+
 # CI: fail if any function is too complex
 fallow health --max-cyclomatic 25 --max-cognitive 20 --quiet
 
@@ -502,7 +517,7 @@ fallow health --format json --quiet --trend
 {
   "kind": "health",
   "schema_version": 7,
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 32,
   "summary": {
     "files_analyzed": 482,
@@ -525,6 +540,8 @@ fallow health --format json --quiet --trend
   ]
 }
 ```
+
+`health.thresholdOverrides[]` config entries can raise local cyclomatic, cognitive, CRAP, or unit-size (large-function line-count) ceilings for matching files and optional exact function names. When an override affects output, health JSON includes top-level `threshold_overrides[]` state entries (`active`, `stale`, or `no_match`). Complexity findings evaluated with local ceilings include `effective_thresholds` and `threshold_source: "override"` so agents can see which thresholds drove the finding and avoid treating configured exceptions as hidden suppressions.
 
 When the unit size very-high-risk percentage is >= 3%, the JSON output includes a `large_functions` array listing functions exceeding 60 lines of code:
 
@@ -803,35 +820,40 @@ The snapshot `snapshot_schema_version` is independent of the report `schema_vers
 
 ## `audit`: Changed-File Quality Gate
 
-Audits changed files for dead code, complexity, and duplication. Returns a verdict (pass/warn/fail). Purpose-built for PR quality gates and reviewing AI-generated code. When `--base` is not set, the base is the `git merge-base` against the branch's upstream or the remote default (`origin/HEAD`, `origin/main`, `origin/master`); set `FALLOW_AUDIT_BASE` to pin it without a flag. Defaults to `--gate new-only`, which fails only on findings introduced by the current changeset and reports inherited findings as context.
+Audits changed files for dead code, complexity, duplication, and styling. Returns a verdict (pass/warn/fail). Purpose-built for PR quality gates and reviewing AI-generated code. When `--base` is not set, the base is the `git merge-base` against the branch's upstream or the remote default (`origin/HEAD`, `origin/main`, `origin/master`); set `FALLOW_AUDIT_BASE` to pin it without a flag. Defaults to `--gate new-only`, which fails only on findings introduced by the current changeset and reports inherited findings as context.
 
 ### Flags
 
+<!-- generated:flags:audit:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--base` | string | merge-base | Git ref to compare against (alias for `--changed-since`). When unset, resolves to the `git merge-base` against the upstream or remote default; `FALLOW_AUDIT_BASE` pins it without a flag. |
-| `--gate` | `new-only\|all` | `new-only` | Which findings affect the verdict. `new-only` gates only introduced findings; `all` gates every finding in changed files and skips the extra base-snapshot attribution pass. |
-| `--production` | bool | false | Exclude test/story/dev files (applies to dead-code, health, and dupes) |
-| `--no-production` | bool | false | Force production mode off, overriding a project config's `production: true` (conflicts with `--production`) |
-| `--production-dead-code` | bool | false | Per-analysis production mode for the dead-code sub-analysis only |
-| `--production-health` | bool | false | Per-analysis production mode for the health sub-analysis only |
-| `--production-dupes` | bool | false | Per-analysis production mode for the duplication sub-analysis only |
-| `-w, --workspace` | string | - | Scope to one or more workspaces. Comma-separated, globs, `!` negation. |
-| `--explain` | bool | false | JSON: include metric definitions in `_meta`. Human: print a `Description:` line under each section header. |
-| `--ci` | bool | false | Equivalent to `--format sarif --fail-on-issues --quiet` |
-| `--fail-on-issues` | bool | false | Exit with code 1 if issues are found |
-| `--sarif-file` | path | - | Write SARIF output to a file alongside primary format |
-| `--dead-code-baseline` | path | - | Baseline file (produced by `fallow dead-code --save-baseline`). Pre-existing dead-code issues are excluded from the verdict. |
-| `--health-baseline` | path | - | Baseline file (produced by `fallow health --save-baseline`). Pre-existing complexity findings are excluded from the verdict. |
-| `--dupes-baseline` | path | - | Baseline file (produced by `fallow dupes --save-baseline`). Pre-existing clone groups are excluded from the verdict. |
-| `--max-crap` | number | `30.0` | Forwarded to the health sub-analysis. Functions meeting or exceeding this CRAP score cause audit to fail. Same formula as `health --max-crap`. Pair with coverage data for accurate per-function CRAP. |
-| `--coverage` | path | none | Path to Istanbul-format coverage data (`coverage-final.json`) for accurate per-function CRAP scores in the health sub-analysis. Same format and semantics as `health --coverage`. Also configurable via `FALLOW_COVERAGE`. Relative paths resolve against `--root`. |
-| `--coverage-root` | path | none | Absolute prefix to strip from file paths in coverage data before prepending the project root. Use when coverage was generated under a different checkout root in CI / Docker (e.g., `/home/runner/work/myapp` on GitHub Actions). |
-| `--fail-on-regression` | bool | false | Fail if issues increased beyond tolerance vs regression baseline |
-| `--tolerance` | string | `0` | Allowed increase before regression fails (`N` or `N%`) |
-| `--regression-baseline` | path | `.fallow/regression-baseline.json` | Path to the regression baseline file |
-| `--save-regression-baseline` | path | - | Save current issue counts as a regression baseline |
+|---|---|---|---|
+| `--production-dead-code` | `bool` | `false` | Per-analysis production mode for the dead-code sub-analysis only |
+| `--production-health` | `bool` | `false` | Per-analysis production mode for the health sub-analysis only |
+| `--production-dupes` | `bool` | `false` | Per-analysis production mode for the duplication sub-analysis only |
+| `--dead-code-baseline` | `string` | - | Baseline file (produced by `fallow dead-code --save-baseline`). Pre-existing dead-code issues are excluded from the verdict. |
+| `--health-baseline` | `string` | - | Baseline file (produced by `fallow health --save-baseline`). Pre-existing complexity findings are excluded from the verdict. |
+| `--dupes-baseline` | `string` | - | Baseline file (produced by `fallow dupes --save-baseline`). Pre-existing clone groups are excluded from the verdict. |
+| `--max-crap` | `string` | - | Forwarded to the health sub-analysis. Functions meeting or exceeding this CRAP score cause audit to fail. Same formula as `health --max-crap`. Pair with coverage data for accurate per-function CRAP. |
+| `--coverage` | `string` | - | Path to Istanbul-format coverage data (`coverage-final.json`) for accurate per-function CRAP scores in the health sub-analysis. Same format and semantics as `health --coverage`. Also configurable via `FALLOW_COVERAGE`. Relative paths resolve against `--root`. |
+| `--coverage-root` | `string` | - | Absolute prefix to strip from file paths in coverage data before prepending the project root. Also configurable via `FALLOW_COVERAGE_ROOT`. Use when coverage was generated under a different checkout root in CI / Docker (e.g., `/home/runner/work/myapp` on GitHub Actions). |
+| `--no-css` | `bool` | `false` | Disable styling analytics in audit |
+| `--css-deep` | `bool` | `false` | Enable deep CSS analysis for audit explicitly: project-wide styling reachability, narrowed back to changed anchors. Deep CSS is on by default; use this to override `audit.cssDeep = false` |
+| `--no-css-deep` | `bool` | `false` | Disable deep CSS analysis while keeping local styling analytics on |
+| `--gate` | `new-only\|all` | - | Which findings affect the verdict. `new-only` gates only introduced findings; `all` gates every finding in changed files and skips the extra base-snapshot attribution pass. |
+| `--runtime-coverage` | `string` | - | Paid runtime-coverage sidecar input. Accepts a V8 directory, a single V8 JSON file, or an Istanbul coverage map JSON. Spawns the `fallow-cov` sidecar as part of the audit pipeline so the `hot-path-touched` verdict surfaces alongside dead-code and complexity findings without requiring a second `fallow health` invocation in CI. License-gated; the verdict is informational (no exit code change) until a future `--gate hot-path-touched` knob lands |
+| `--min-invocations-hot` | `string` | `100` | Threshold for hot-path classification, forwarded to the sidecar when `--runtime-coverage` is set |
+| `--gate-marker` | `string` | - | Internal marker identifying a gate run (e.g. `pre-commit`), set by the generated git hook so Fallow Impact can record a containment event when the gate blocks then clears. Hidden; never changes the verdict, exit code, or output |
+| `--brief` | `bool` | `false` | Render the deterministic review brief instead of the gating audit report. The brief answers "where do I look?" rather than "will CI block this?", runs the same analysis, and ALWAYS exits 0 (the verdict is carried informationally). Implied by `fallow review`. Orthogonal to `--format` |
+| `--max-decisions` | `string` | `4` | Cap on the number of consequential structural decisions surfaced in the review brief's decision surface (the working-memory limit). Default 4; clamped to the 3-5 band (4 plus or minus 1). Only consulted on the brief path |
+| `--walkthrough-guide` | `bool` | `false` | Emit the agent-contract WALKTHROUGH GUIDE: the current digest (brief + decision surface), the review direction, the JSON schema the agent must return, and a deterministic graph-snapshot hash pinned into the digest. The digest is built from the graph only (PR prose is never folded in, so it is injection-resistant). Implies the brief; always exits 0. A thin agent skill calls this to fetch the current guide, produces judgment JSON, then reopens with `--walkthrough-file` |
+| `--walkthrough-file` | `string` | - | Ingest an agent's judgment JSON and POST-VALIDATE it against the LIVE graph. Rejects any judgment whose `signal_id` fallow did not emit (anti-hallucination); refuses the whole payload as stale when the echoed graph-snapshot hash no longer matches (the tree moved). The verifier is the graph, not a second model. Implies the brief; always exits 0. The agent's free-text framing is fenced as non-deterministic and never gates or auto-posts |
+| `--walkthrough` | `bool` | `false` | Render the existing walkthrough guide as a staged HUMAN terminal tour (Stage 1 load-bearing / Stage 2 mechanical), or markdown with `--format markdown`. Implies the brief; always exits 0. `--format json --walkthrough` emits the same agent-contract JSON as `--walkthrough-guide` |
+| `--mark-viewed` | `string` | - | Record one or more changed files as VIEWED in the local walkthrough viewed-state ledger (`.fallow/walkthrough-state.json`), then render the tour. Files already viewed (and still current) collapse into the Cleared panel. Repeatable. Stale marks (the tree moved) are ignored on render but never deleted. Only consulted on the `--walkthrough` path |
+| `--show-cleared` | `bool` | `false` | Expand the Cleared panel in the human/markdown walkthrough tour: list each de-prioritized and already-viewed file instead of the collapsed one-line summary. Only consulted on the `--walkthrough` path |
+| `--show-deprioritized` | `bool` | `false` | Expand the de-prioritized units in the review brief's weighted focus map ("show me what you de-prioritized"). The `deprioritized` escape-hatch list is ALWAYS present in `--format json` regardless; this flag only re-expands the collapse-by-default human focus render. Only consulted on the brief path |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--changed-since`](#global-flags), [`--diff-file`](#global-flags), [`--diff-stdin`](#global-flags), [`--workspace`](#global-flags), [`--changed-workspaces`](#global-flags), [`--group-by`](#global-flags), [`--output-file`](#global-flags).
+<!-- generated:flags:audit:end -->
 ### Verdicts
 
 | Verdict | Exit code | When |
@@ -893,7 +915,7 @@ fallow audit \
 {
   "kind": "audit",
   "schema_version": 7,
-  "version": "2.92.1",
+  "version": "3.14.0",
   "command": "audit",
   "verdict": "fail",
   "changed_files_count": 12,
@@ -915,7 +937,9 @@ fallow audit \
     "complexity_introduced": 1,
     "complexity_inherited": 0,
     "duplication_introduced": 0,
-    "duplication_inherited": 0
+    "duplication_inherited": 0,
+    "styling_introduced": 0,
+    "styling_inherited": 0
   },
   "dead_code": {
     "schema_version": 3,
@@ -931,7 +955,7 @@ fallow audit \
 }
 ```
 
-The `verdict` field is always present and is the primary decision signal. With the default `new-only` gate, the `attribution` object counts introduced vs inherited findings and audit sub-results annotate individual findings with `introduced: true/false`. With `gate=all`, audit skips that extra base-snapshot attribution pass, so introduced/inherited counts stay `0` and per-finding `introduced` fields are omitted. Dead code, complexity, and duplication sections follow their respective schemas from the individual commands. Thresholds for complexity are inherited from `fallow health` config (defaults: cyclomatic 20, cognitive 15).
+The `verdict` field is always present and is the primary decision signal. With the default `new-only` gate, the `attribution` object counts introduced vs inherited findings across dead code, complexity, duplication, and styling, and audit sub-results annotate individual findings with `introduced: true/false`. With `gate=all`, audit skips that extra base-snapshot attribution pass, so introduced/inherited counts stay `0` and per-finding `introduced` fields are omitted. Dead code, complexity, and duplication sections follow their respective schemas from the individual commands. Thresholds for complexity are inherited from `fallow health` config (defaults: cyclomatic 20, cognitive 15).
 
 Audit creates a temporary git worktree to compare against the base ref. When the current checkout has `node_modules`, audit links it into the base worktree so tsconfig `extends` chains into installed packages and path aliases resolve like the working tree. The worktree is removed on normal exit. If the process is force-killed, run `git worktree prune` to clean up stale `.git/worktrees/fallow-audit-base-*` entries.
 
@@ -943,12 +967,13 @@ Detects feature flag patterns in the codebase. Identifies environment variable f
 
 ### Flags
 
+<!-- generated:flags:flags:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--format` | `human\|json\|sarif\|compact\|markdown\|codeclimate\|gitlab-codequality\|pr-comment-github\|pr-comment-gitlab\|review-github\|review-gitlab` | `human` | Output format |
-| `--quiet` | bool | `false` | Suppress progress bars |
-| `--top` | number | - | Show only the top N flags |
+|---|---|---|---|
+| `--top` | `string` | - | Show only the top N flags |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--changed-since`](#global-flags), [`--workspace`](#global-flags).
+<!-- generated:flags:flags:end -->
 ### Examples
 
 ```bash
@@ -967,7 +992,7 @@ fallow flags --format json --quiet --workspace my-package
 ```json
 {
   "schema_version": 7,
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 116,
   "feature_flags": [],
   "total_flags": 0
@@ -1030,29 +1055,24 @@ The second rule family is a data-driven `tainted-sink` catalogue: syntactic dang
 | `secret-pii-log` | 532 | source-backed secrets or request PII reaching logs |
 | `hardcoded-secret` | 798 | provider-prefix credentials and high-entropy literals assigned to secret-shaped identifiers (include-required) |
 | `secret-to-network` | 201 | a non-public `process.env` / `import.meta.env` secret reaching a network call body (`fetch` / `axios` / `got` / ...) via same-identifier flow (include-required) |
+| `llm-call-injection` | 1427 | an untrusted source reaching the prompt/messages argument of a known LLM-call sink (taint-path gated, pinned to distinctive LLM SDK call shapes) |
 | `xpath-injection` | 643 | `xpath.select` / `select1` with a non-literal expression |
 
 Build-config and test files are excluded from candidate generation. Security rule families default to `off` and are surfaced only by `fallow security`, never under bare `fallow` or the `audit` gate. Scope which catalogue categories run with `security.categories` include / exclude lists in config. Add project-local request object names with `security.requestReceivers`; it extends the built-in `req` / `request` / `ctx` / `context` / `event` allowlist for HTTP `query`, `params`, and `body` reads. The setting is additive only and does not gate `*.searchParams`. `hardcoded-secret` and `secret-to-network` are intentionally include-required and only run when listed in `security.categories.include` (`secret-to-network` is opt-in because legitimate auth is also a secret reaching a network call). Public-by-convention env vars (`NEXT_PUBLIC_`, `VITE_`, ...) are never treated as secrets.
 
 ### Flags
 
+<!-- generated:flags:security:start -->
 | Flag | Type | Default | Description |
-|------|------|---------|-------------|
-| `--format` | `human\|json\|sarif` | `human` | Output format |
-| `--quiet` | bool | `false` | Suppress progress output |
-| `--summary` | bool | `false` | Show a compact human summary |
-| `--ci` | bool | `false` | Equivalent to `--format sarif --fail-on-issues --quiet` |
-| `--fail-on-issues` | bool | `false` | Exit 1 when candidates are found |
-| `--sarif-file` | path | none | Write SARIF in addition to the primary output |
-| `--changed-since` | git ref | none | Scope to candidates whose client anchor or trace hops touch changed files |
-| `--file` | path, repeatable | none | Scope output to candidates whose finding anchor or trace hop matches the selected file. The full graph is still analyzed |
-| `--diff-file` | path | none | Scope candidates to added hunks on the client anchor or import trace. Secret-source hops use file-level retention because member-access spans are not yet stored. Use `-` for stdin |
-| `--diff-stdin` | bool | `false` | Read the unified diff from stdin (equivalent to `--diff-file -`) for line-level scoping and the regression gate |
-| `--surface` | bool | `false` | Include the agent-facing `attack_surface[]` inventory in JSON output |
-| `--gate` | `new\|newly-reachable` | none | `new` fails (exit code **8**) only when the change introduces a NEW security-sink candidate in the changed lines. It requires a diff source (`--changed-since`, `--diff-file`, or `--diff-stdin`). `newly-reachable` fails when an existing candidate becomes reachable from entry points compared with `--changed-since <ref>`; diff-only inputs exit 2 because this mode analyzes the base tree. Human output says `REVIEW REQUIRED` (not `FAIL`); SARIF keeps every result at `level: note` with the verdict in `run.properties.fallowGate`; `--format json` carries an additive `gate` block (`mode` / `verdict` / `new_count`) |
-| `--workspace` | string | none | Scope to selected workspace packages |
-| `--changed-workspaces` | git ref | none | Scope to workspaces changed since a git ref |
+|---|---|---|---|
+| `--runtime-coverage` | `string` | - | Paid runtime-coverage sidecar input. Accepts a V8 directory, a single V8 JSON file, or an Istanbul coverage map JSON. When set, `fallow security` annotates tainted-sink candidates with production runtime state and uses that state as an additive ranking signal |
+| `--min-invocations-hot` | `string` | `100` | Threshold for hot-path classification, forwarded to the sidecar when `--runtime-coverage` is set |
+| `--file` | `string` | - | Scope output to candidates whose finding anchor or trace hop matches the selected file. The full graph is still analyzed |
+| `--gate` | `new\|newly-reachable` | - | `new` fails (exit code **8**) only when the change introduces a NEW security-sink candidate in the changed lines. It requires a diff source (`--changed-since`, `--diff-file`, or `--diff-stdin`). `newly-reachable` fails when an existing candidate becomes reachable from entry points compared with `--changed-since <ref>`; diff-only inputs exit 2 because this mode analyzes the base tree. Human output says `REVIEW REQUIRED` (not `FAIL`); SARIF keeps every result at `level: note` with the verdict in `run.properties.fallowGate`; `--format json` carries an additive `gate` block (`mode` / `verdict` / `new_count`) |
+| `--surface` | `bool` | `false` | Include the agent-facing `attack_surface[]` inventory in JSON output |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--changed-since`](#global-flags), [`--diff-file`](#global-flags), [`--diff-stdin`](#global-flags), [`--workspace`](#global-flags), [`--changed-workspaces`](#global-flags).
+<!-- generated:flags:security:end -->
 ### Examples
 
 ```bash
@@ -1073,7 +1093,7 @@ fallow security --gate newly-reachable --changed-since origin/main
 {
   "kind": "security",
   "schema_version": "4",
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 42,
   "config": {
     "rules": {
@@ -1102,7 +1122,7 @@ fallow security --gate newly-reachable --changed-since origin/main
 {
   "kind": "security",
   "schema_version": "4",
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 42,
   "config": {
     "rules": {
@@ -1166,6 +1186,100 @@ Every finding also carries an agent-actionable `candidate { source_kind, sink, b
 
 ---
 
+## `inspect`: Target Evidence Bundle
+
+Compose one evidence bundle before editing a file or exported symbol. This is the CLI equivalent of the MCP `inspect_target` tool.
+
+### Usage
+
+```bash
+fallow inspect --file src/api.ts --format json --quiet
+fallow inspect --symbol src/api.ts:fetchUser --format json --quiet
+fallow inspect --file src/api.ts --churn --format json --quiet
+```
+
+### Target Flags
+
+| Flag | Description |
+|------|-------------|
+| `--file <PATH>` | Inspect one project-relative file |
+| `--symbol <FILE:EXPORT>` | Inspect one exported symbol. Supporting dead-code, duplication, complexity, and security evidence is file-scoped in the first version |
+| `--churn` | Add target-level git churn evidence. Off by default; missing git history is reported as `unavailable` |
+
+Common global flags: `--format`, `--quiet`, `--root`, `--config`, `--workspace`, `--production`, `--no-cache`, `--threads`.
+
+### JSON Output Structure
+
+```json
+{
+  "kind": "inspect_target",
+  "target": { "type": "file", "file": "src/api.ts" },
+  "identity": {
+    "file": "src/api.ts",
+    "is_reachable": true,
+    "is_entry_point": false,
+    "export_count": 3,
+    "import_count": 2,
+    "imported_by_count": 1
+  },
+  "evidence": {
+    "trace_file": { "status": "ok", "scope": "file", "data": {} },
+    "dead_code": { "status": "ok", "scope": "file", "data": {} },
+    "duplication": { "status": "ok", "scope": "project_filtered_to_file", "data": {} },
+    "complexity": { "status": "ok", "scope": "project_filtered_to_file", "data": {} },
+    "security": { "status": "ok", "scope": "file", "data": {} },
+    "churn": { "status": "ok", "scope": "project_filtered_to_file", "data": {} }
+  },
+  "warnings": []
+}
+```
+
+Each evidence section carries `status` and `scope`. The optional churn section can report `ok`, `unavailable`, or `error`. Non-fatal analysis failures become section-level errors and warnings, so callers can still use the remaining evidence.
+
+---
+
+## `trace`: Symbol Call Chains
+
+Walk the callers and callees of one exported symbol through the module graph. Callers are the modules that import the symbol (walked up); callees are the symbol's module's import-symbol edges plus its intra-module call sites (walked down). Best-effort and syntactic per ADR-001: resolved and unresolved callees are reported honestly, never silently dropped. This is its own surface, never folded into the ranked review brief.
+
+The target is a positional argument, formatted as `FILE:SYMBOL` (for example `src/utils.ts:formatDate`). When neither `--callers` nor `--callees` is given, both directions are walked.
+
+```bash
+fallow trace src/utils.ts:formatDate
+fallow trace src/utils.ts:formatDate --callers --depth 3
+```
+
+<!-- generated:flags:trace:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--callers` | `bool` | `false` | Walk UP to callers (modules that import the symbol). When neither `--callers` nor `--callees` is set, both directions are walked |
+| `--callees` | `bool` | `false` | Walk DOWN to callees (the symbol's module's import-symbol edges plus unresolved call sites). When neither flag is set, both are walked |
+| `--depth` | `string` | - | Chain depth bound for both directions (default 2). Symbol-level is best-effort, so a shallow bound keeps the trace legible |
+
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--root`](#global-flags), [`--config`](#global-flags).
+<!-- generated:flags:trace:end -->
+
+---
+
+## `decision-surface`: Structural Decisions
+
+Surface only the consequential structural decisions a change embeds (the apex of the review brief): a ranked, capped (3 to 5, default 4) set of coupling/boundary, public-API/contract, and dependency decisions, each framed as a judgment question with the routed expert to ask, plus a trade-off clause and the count of in-repo consumers that already depend on the anchor. Runs the same changed-code analysis as `fallow review` but emits only the decisions, separable and cheap. Always exits 0 (advisory, never a gate); every decision is suppressible with `// fallow-ignore`. Use `--base` / `--changed-since` to pick the comparison point, exactly like `fallow audit`.
+
+```bash
+fallow decision-surface --base main
+fallow decision-surface --base main --format json --quiet
+```
+
+<!-- generated:flags:decision-surface:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--max-decisions` | `string` | `4` | Cap on the number of surfaced decisions (the working-memory limit). Default 4; clamped to the 3-5 band (4 plus or minus 1) |
+
+Common global flags for this command: [`--changed-since`](#global-flags), [`--format`](#global-flags), [`--quiet`](#global-flags), [`--workspace`](#global-flags), [`--root`](#global-flags), [`--config`](#global-flags).
+<!-- generated:flags:decision-surface:end -->
+
+---
+
 ## `explain`: Rule Explanation
 
 Print rule rationale, examples, fix guidance, and docs URL for one issue type without running analysis.
@@ -1201,13 +1315,23 @@ MCP equivalent: `fallow_explain` with required `issue_type`.
 
 ---
 
-## `schema`: CLI Introspection
+## `schema`: Capability Manifest
 
-Dumps the full CLI interface definition as machine-readable JSON.
+Dumps fallow's complete capability manifest as machine-readable JSON (always JSON, regardless of `--format`). The single source of truth for agent introspection.
 
 ```bash
 fallow schema
 ```
+
+Top-level blocks:
+
+- `manifest_version`: manifest shape discriminator (currently `"1"`).
+- `commands` + `global_flags`: every CLI command and flag, derived live from the CLI definition.
+- `issue_types`: one row per reportable issue type across ALL analyses (dead-code, health, dupes, flags, security). Each row carries `id` (the bare rule id; several rows share one suppression token, e.g. all complexity rules suppress via `complexity`), `rule_id` (SARIF id), `command`, `category`, `filter_flag` (null when none), `fixable`, `suppressible`, `suppress_comment` (copy-pasteable, null when not suppressible), `note`, `license` (`free` | `freemium`), and `docs_url`. Nullable fields are always present (null, never absent).
+- `mcp_tools`: all MCP server tools with `kind` grouping (analysis/trace/impact/fix/introspection/runtime-coverage/composition), one-line description, `cli_command` nearest CLI fallback, `key_params` (curated subset; live MCP `list_tools` schemas are authoritative), `license` + `license_note` (the 5 runtime-coverage tools are `freemium`: a single local capture is free, continuous monitoring is paid), and `read_only`.
+- `plugins`: built-in framework plugin count + names, derived live from the registry.
+- `environment_variables`: every user-facing `FALLOW_*` variable (internal plumbing excluded).
+- `output_formats`, `exit_codes`, `severity_levels`, `suppression_comments`.
 
 ---
 
@@ -1227,6 +1351,16 @@ Prints the JSON Schema for external plugin definition files.
 
 ```bash
 fallow plugin-schema > plugin-schema.json
+```
+
+---
+
+## `plugin-check`: Verify external plugins
+
+Read-only dry-run of your external plugins. Reports, per plugin, whether it activated (with the unmet `detection`/`enabler` requirement when inactive), and for `manifestEntries` rules which manifests each matched, what it seeded (with `path_exists`), and typed warnings (`manifests-matched-none`, `when-excluded-all`, `field-path-unresolved`, `entries-empty`, `manifest-parse-failed`, `entry-outside-root`, `seeded-paths-missing`). Run it after authoring a `fallow-plugin-*.jsonc` to verify it before a full analysis. Deterministic output; always exits 0 (advisory, never a gate).
+
+```bash
+fallow plugin-check --format json
 ```
 
 ---
@@ -1346,8 +1480,33 @@ The inspected payload prints to stderr; stdout (including `--format json`) is un
 
 - **Off by default.** Precedence: `DO_NOT_TRACK` / `FALLOW_TELEMETRY_DISABLED` (kill switches) > `FALLOW_TELEMETRY_DEBUG` (forces inspect) > `FALLOW_TELEMETRY` env > CI (off unless `FALLOW_TELEMETRY` is set) > user config (`fallow telemetry enable/disable`) > off.
 - **CI is off** unless `FALLOW_TELEMETRY` is explicitly set in that CI environment; a local `enable` never turns on org CI telemetry.
+- **Decision status:** `fallow telemetry status --format json` includes `explicit_decision`. `false` means the user may have only seen the notice; `true` means `telemetry enable` or `telemetry disable` was explicitly run.
 - **Transport:** when enabled, one small JSON event is POSTed to `https://api.fallow.cloud/v1/telemetry/events` (override with `FALLOW_API_URL`), no auth token, no cookies, on a background thread so it does not delay your command. Delivery is best-effort; errors never change output or exit code.
 - **Agent source:** wrappers may set `FALLOW_AGENT_SOURCE=<allowlisted-value>` so an enabled run is attributed correctly. Allowlist: `codex`, `claude_code`, `cursor`, `copilot`, `opencode`, `aider`, `roo`, `windsurf`, `gemini` (aliases `gemini_cli`/`antigravity`), `cline`, `continue`, `zed`, `goose`, `other_known`, `unknown`, `none`. Setting it never enables telemetry and uploads no codebase content.
+
+---
+
+## `impact`: Local Impact History
+
+Read the opt-in Impact history stored in the user's private config directory.
+These commands start no analysis and never upload data.
+
+```bash
+fallow impact
+fallow impact status
+fallow impact statusline
+fallow impact --all --sort recent
+```
+
+`fallow impact statusline` is the stable status-surface command. It always
+prints exactly one plain-text, path-free line, ignores the global output format,
+and performs no migration write. Whole-project counts come from the last full
+`fallow` scan and their trend compares only the prior full scan. Older stores
+with changed-file history label that narrower scope explicitly and omit its
+non-comparable trend.
+
+The command does not enable tracking. Only the user may opt in with
+`fallow impact enable` or `fallow impact default on`.
 
 ---
 
@@ -1480,10 +1639,13 @@ fallow config --path     # only the path (scriptable)
 
 ### Flags
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `--path` | bool | Print only the config file path, no JSON |
+<!-- generated:flags:config:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--path` | `bool` | `false` | Print only the config file path, no JSON |
 
+Common global flags for this command: [`--format`](#global-flags), [`--quiet`](#global-flags), [`--config`](#global-flags), [`--root`](#global-flags).
+<!-- generated:flags:config:end -->
 ### Exit Codes
 
 | Code | Meaning |
@@ -1502,39 +1664,107 @@ The `loaded config: <path>` line is also emitted to stderr automatically at the 
 
 Available on all commands:
 
-| Flag | Type | Description |
-|------|------|-------------|
-| `-r, --root` | path | Project root directory |
-| `-c, --config` | path | Config file path |
-| `-f, --format` (alias: `--output`) | string | Output format |
-| `-q, --quiet` | bool | Suppress progress output |
-| `--no-cache` | bool | Disable incremental caching |
-| `--threads` | number | Number of parser threads |
-| `--changed-since` (alias: `--base`) | string | Git-aware incremental analysis |
-| `--baseline` | path | Compare to baseline |
-| `--save-baseline` | path | Save results as baseline |
-| `--fail-on-regression` | bool | Fail if issue count increased beyond tolerance vs a regression baseline |
-| `--tolerance` | string | Allowed increase: `"2%"` (percentage) or `"5"` (absolute). Default: `"0"` |
-| `--regression-baseline` | path | Path to regression baseline file (default: `.fallow/regression-baseline.json`) |
-| `--save-regression-baseline` | path | Save current issue counts as a regression baseline |
-| `--production` | bool | Exclude test/dev files, only start/build scripts (applies to every analysis) |
-| `--production-dead-code` / `--production-health` / `--production-dupes` | bool | Per-analysis production mode for bare combined runs and `fallow audit`. Per-analysis env vars `FALLOW_PRODUCTION_DEAD_CODE`/`HEALTH`/`DUPES` mirror these flags. Per-analysis env beats global `FALLOW_PRODUCTION`. |
-| `--performance` | bool | Show pipeline timing breakdown |
-| `-w, --workspace` | string | Scope to one or more workspaces (comma-separated, globs, `!` negation) |
-| `--changed-workspaces` | string (git ref) | Git-derived monorepo CI scoping: scope to workspaces containing any file changed since `REF`. Mutually exclusive with `--workspace`. Missing ref is a hard error. |
-| `--explain` | bool | JSON: include metric definitions in `_meta`. Human: print a `Description:` line under each section header. Always on for MCP. |
-| `--legacy-envelope` | bool | Emit the previous typed JSON root envelope without top-level `kind` |
-| `--only` | string | Run only specific analyses (e.g., `--only dead-code,dupes`). Values: `dead-code` (alias: `check`), `dupes`, `health` |
-| `--skip` | string | Skip specific analyses (e.g., `--skip health`). Values: `dead-code` (alias: `check`), `dupes`, `health` |
-| `--ci` | bool | CI mode: `--format sarif --fail-on-issues --quiet` |
-| `--fail-on-issues` | bool | Exit 1 if any issues found (promotes `warn` to `error`) |
-| `--sarif-file` | path | Write SARIF output to a file instead of stdout |
-| `--summary` | bool | Show only category counts without individual items. Useful for dashboards and quick overviews |
-| `--group-by` | `owner\|directory\|package\|section` | Group output by CODEOWNERS ownership (`owner`), first path component (`directory`), workspace package (`package`, aliases: `workspace`, `pkg`), or GitLab CODEOWNERS `[Section]` headers (`section`, alias: `gl-section`). All output formats partition issues into labeled groups. `section` mode attaches an `owners` array to each group in JSON output |
-| `--score` | bool | Compute health score (0-100 with letter grade) in combined mode. Enables the health delta header in PR comments. JSON includes `health_score` object with `score`, `grade`, and `penalties` breakdown |
-| `--trend` | bool | Compare current health metrics against saved snapshot. Implies `--score`. Shows per-metric deltas with directional indicators. Requires at least one saved snapshot in `.fallow/snapshots/` |
-| `--save-snapshot` | path (optional) | Save vital signs snapshot for trend tracking. Default path: `.fallow/snapshots/<timestamp>.json`. Forces file-scores + hotspot computation |
+<!-- generated:flags:global:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `-r, --root` | `string` | - | Project root directory |
+| `-c, --config` | `string` | - | Config file path |
+| `--allow-remote-extends` | `bool` | `false` | Allow trusted config files to extend HTTPS URLs |
+| `-f, --format` | `human\|json\|sarif\|compact\|markdown\|codeclimate\|pr-comment-github\|pr-comment-gitlab\|review-github\|review-gitlab\|badge\|github-annotations\|github-summary` | `human` | Output format (alias: --output) |
+| `--pretty` | `bool` | `false` | Indent JSON output for manual inspection. Requires the final output format to be JSON |
+| `-q, --quiet` | `bool` | `false` | Suppress progress output |
+| `--no-cache` | `bool` | `false` | Disable incremental caching |
+| `--threads` | `string` | - | Number of parser threads |
+| `--changed-since` | `string` | - | Only report issues in files changed since this git ref (e.g., main, HEAD~5) |
+| `--diff-file` | `string` | - | Unified diff for line-level scoping. Use `-` to read from stdin. Project-level findings still bypass this filter. When both this and `--changed-since` are set, the diff filter wins for finding scope while `--changed-since` still drives file discovery |
+| `--diff-stdin` | `bool` | `false` | Read the unified diff from stdin. Equivalent to `--diff-file -` |
+| `--churn-file` | `string` | - | Import change history from a `fallow-churn/v1` JSON file instead of `git log`, powering hotspots, ownership, and bus-factor on projects with no git repository (Yandex Arc, Mercurial, Perforce). A small wrapper translates your VCS log into the contract. Resolved relative to `--root`. Affects `health --hotspots` / `--ownership` / `--targets` only; `audit`, `impact`, and `--changed-since` still require git |
+| `--max-file-size` | `string` | - | Skip source files larger than this many megabytes (default 5) instead of parsing them, guarding against the out-of-memory blowup a single multi-MB generated/vendored/bundled file causes on large repos. Use `0` for no limit. Declaration files (`.d.ts`) are always analyzed. Skipped files are reported and excluded from every analysis. Also settable via `FALLOW_MAX_FILE_SIZE` |
+| `--baseline` | `string` | - | Compare to baseline |
+| `--baseline-mode` | `count\|identity` | - | How `--baseline` matches health findings: per file and category (`count`, the default) or per function identity (`identity`, strict, and only against a baseline saved with `--baseline-mode identity`; such a baseline still reads in count mode). Identity is file path plus function name, so renaming or moving a function that is still in the baseline reports it as new; re-save after that kind of refactor. |
+| `--parent-run` | `string` | - | Correlate this run with a previous telemetry analysis run |
+| `--save-baseline` | `string` | - | Save results as baseline |
+| `--production` | `bool` | `false` | Exclude test/dev files, only start/build scripts (applies to every analysis) |
+| `--no-production` | `bool` | `false` | Force production mode OFF for every analysis, overriding a project config's `production: true` (and `FALLOW_PRODUCTION`). Conflicts with `--production` |
+| `--production-dead-code` | `bool` | `false` | Run dead-code analysis in production mode when using bare combined mode |
+| `--production-health` | `bool` | `false` | Run health analysis in production mode when using bare combined mode |
+| `--production-dead-code` / `--production-health` / `--production-dupes` | `bool` | `false` | Per-analysis production mode for bare combined runs and `fallow audit`. Per-analysis env vars `FALLOW_PRODUCTION_DEAD_CODE`/`HEALTH`/`DUPES` mirror these flags. Per-analysis env beats global `FALLOW_PRODUCTION`. |
+| `-w, --workspace` | `string` | - | Scope to one or more workspaces (comma-separated, globs, `!` negation) |
+| `--changed-workspaces` | `string` | - | Git-derived monorepo CI scoping: scope to workspaces containing any file changed since `REF`. Mutually exclusive with `--workspace`. Missing ref is a hard error. |
+| `--group-by` | `owner\|directory\|package\|section` | - | Group output by CODEOWNERS ownership (`owner`), first path component (`directory`), workspace package (`package`, aliases: `workspace`, `pkg`), or GitLab CODEOWNERS `[Section]` headers (`section`, alias: `gl-section`). All output formats partition issues into labeled groups. `section` mode attaches an `owners` array to each group in JSON output |
+| `--performance` | `bool` | `false` | Show pipeline timing breakdown |
+| `--explain` | `bool` | `false` | JSON: include metric definitions in `_meta`. Human: print a `Description:` line under each section header. Always on for MCP. |
+| `--explain-skipped` | `bool` | `false` | Show a per-pattern breakdown for default duplicate ignores |
+| `--summary` | `bool` | `false` | Show only category counts without individual items. Useful for dashboards and quick overviews |
+| `--ci` | `bool` | `false` | CI mode: `--format sarif --fail-on-issues --quiet` |
+| `--fail-on-issues` | `bool` | `false` | Exit 1 if any issues found (promotes `warn` to `error`) |
+| `--sarif-file` | `string` | - | Write SARIF output to a file instead of stdout |
+| `-o, --output-file` | `string` | - | Write the report to a file instead of stdout, for any --format (no ANSI codes). Useful on large projects where the terminal scrollback truncates the top. Progress and the confirmation stay on stderr |
+| `--report-path-prefix` | `string` | - | Prefix prepended to every path in the CI-facing formats (`github-annotations`, `github-summary`, `codeclimate`, `review-github`, `review-gitlab`). CI platforms address files by repository-root-relative path, so when the analyzed project lives in a subdirectory (e.g. `packages/app/`), paths need that offset. fallow detects the offset via the git toplevel automatically; this flag overrides the detection. Pass an empty string to disable rebasing and emit paths relative to `--root` |
+| `--fail-on-regression` | `bool` | `false` | Fail if issue count increased beyond tolerance vs a regression baseline |
+| `--tolerance` | `string` | `0` | Allowed increase: `"2%"` (percentage) or `"5"` (absolute). Default: `"0"` |
+| `--regression-baseline` | `string` | - | Path to a standalone regression baseline file. Without it, fallow uses `regression.baseline` from the config |
+| `--save-regression-baseline` | `string` | - | Save current issue counts. With no path, update `regression.baseline` in the discovered fallow config or create `.fallowrc.json`; with a path, write a standalone baseline file |
+| `--only` | `dead-code\|dupes\|health` | - | Run only specific analyses (e.g., `--only dead-code,dupes`). Values: `dead-code` (alias: `check`), `dupes`, `health` |
+| `--skip` | `dead-code\|dupes\|health` | - | Skip specific analyses (e.g., `--skip health`). Values: `dead-code` (alias: `check`), `dupes`, `health` |
+| `--dupes-mode` | `strict\|mild\|weak\|semantic` | - | Override duplication detection mode in combined mode |
+| `--dupes-threshold` | `string` | - | Override duplication threshold in combined mode |
+| `--dupes-min-tokens` | `string` | - | Override the minimum token count for clones in combined mode |
+| `--dupes-min-lines` | `string` | - | Override the minimum line count for clones in combined mode |
+| `--dupes-min-occurrences` | `string` | - | Override the minimum clone occurrences in combined mode (must be >= 2) |
+| `--dupes-skip-local` | `bool` | `false` | Only report cross-directory duplicates in combined mode |
+| `--dupes-cross-language` | `bool` | `false` | Enable cross-language duplicate detection in combined mode |
+| `--dupes-ignore-imports` | `bool` | `false` | Exclude module wiring from duplicate detection in combined mode |
+| `--dupes-no-ignore-imports` | `bool` | `false` | Count module wiring as clone candidates in combined mode (opt out of the default exclusion) |
+| `--score` | `bool` | `false` | Compute health score (0-100 with letter grade) in combined mode. Enables the health delta header in PR comments. JSON includes `health_score` object with `score`, `grade`, and `penalties` breakdown |
+| `--trend` | `bool` | `false` | Compare current health metrics against saved snapshot. Implies `--score`. Shows per-metric deltas with directional indicators. Requires at least one saved snapshot in `.fallow/snapshots/` |
+| `--save-snapshot` | `string` | - | Save vital signs snapshot for trend tracking. Default path: `.fallow/snapshots/<timestamp>.json`. Forces file-scores + hotspot computation |
+| `--coverage` | `string` | - | Path to Istanbul coverage data for exact CRAP scores in combined mode. Also settable via `FALLOW_COVERAGE` or `health.coverage` |
+| `--coverage-root` | `string` | - | Absolute prefix to strip from Istanbul file paths in combined mode. Also settable via `FALLOW_COVERAGE_ROOT` or `health.coverageRoot` |
+| `--include-entry-exports` | `bool` | `false` | Report unused exports in entry files instead of auto-marking them as used |
+| `--type-aware` | `bool` | `false` | Opt in to TypeScript semantic analysis for project-wide symbol evidence. This does not emit compiler diagnostics or typed lint findings |
+| `--no-type-aware` | `bool` | `false` | Disable TypeScript semantic analysis even when `typeAware.enabled` or `FALLOW_TYPE_AWARE` opts in, keeping this run fully syntactic |
+| `--type-aware-project` | `string` | - | TypeScript project config to use for type-aware analysis (repeatable) |
+| `--type-aware-require` | `best-effort\|complete` | - | Decide whether incomplete type-aware analysis is advisory or gating |
+<!-- generated:flags:global:end -->
 
+Type-aware candidate decisions are `confirmed-used`, `contract-preserved`,
+`confirmed-no-static-references`, `retained-abstained`, or
+`retained-unresolved`. The first two remove a syntactic false positive.
+Complete negative evidence keeps the finding and only makes a class member
+automatically fixable when every owning project is complete, no contract or
+dynamic gap exists, and the exact declaration hash still matches.
+`fallow fix --type-aware --dry-run --format json --quiet` previews these
+guarded edits.
+
+### Combined Mode Flags
+
+<!-- generated:flags:fallow-combined:start -->
+| Flag | Type | Default | Description |
+|---|---|---|---|
+| `--only` | `dead-code\|dupes\|health` | - | Run only specific analyses when no subcommand is given |
+| `--skip` | `dead-code\|dupes\|health` | - | Skip specific analyses when no subcommand is given |
+| `--production` | `bool` | `false` | Production mode: exclude test/story/dev files, only start/build scripts, report type-only dependencies |
+| `--no-production` | `bool` | `false` | Force production mode OFF for every analysis, overriding a project config's `production: true` (and `FALLOW_PRODUCTION`). Conflicts with `--production` |
+| `--production-dead-code` | `bool` | `false` | Run dead-code analysis in production mode when using bare combined mode |
+| `--production-health` | `bool` | `false` | Run health analysis in production mode when using bare combined mode |
+| `--production-dupes` | `bool` | `false` | Run duplication analysis in production mode when using bare combined mode |
+| `--dupes-mode` | `strict\|mild\|weak\|semantic` | - | Override duplication detection mode in combined mode |
+| `--dupes-threshold` | `string` | - | Override duplication threshold in combined mode |
+| `--dupes-min-tokens` | `string` | - | Override the minimum token count for clones in combined mode |
+| `--dupes-min-lines` | `string` | - | Override the minimum line count for clones in combined mode |
+| `--dupes-min-occurrences` | `string` | - | Override the minimum clone occurrences in combined mode (must be >= 2) |
+| `--dupes-skip-local` | `bool` | `false` | Only report cross-directory duplicates in combined mode |
+| `--dupes-cross-language` | `bool` | `false` | Enable cross-language duplicate detection in combined mode |
+| `--dupes-ignore-imports` | `bool` | `false` | Exclude module wiring from duplicate detection in combined mode |
+| `--score` | `bool` | `false` | Compute health score in combined mode |
+| `--trend` | `bool` | `false` | Compare current health metrics against the most recent saved snapshot |
+| `--save-snapshot` | `string` | - | Save a vital signs snapshot for trend tracking in combined mode. Provide a path or omit for the default `.fallow/snapshots/` location |
+| `--coverage` | `string` | - | Path to Istanbul coverage data for exact CRAP scores in combined mode. Also settable via `FALLOW_COVERAGE` or `health.coverage` |
+| `--coverage-root` | `string` | - | Absolute prefix to strip from Istanbul file paths in combined mode. Also settable via `FALLOW_COVERAGE_ROOT` or `health.coverageRoot` |
+
+These are global flags with behavior specific to bare `fallow` combined mode.
+<!-- generated:flags:fallow-combined:end -->
 ---
 
 ## Environment Variables
@@ -1548,9 +1778,13 @@ Available on all commands:
 | `FALLOW_EXTENDS_TIMEOUT_SECS` | Timeout for fetching remote config inheritance in seconds (default: `5`). Do not raise this for untrusted sources. |
 | `FALLOW_CACHE_DIR` | Override the persistent extraction cache directory. Wins over `cache.dir`. Useful for read-only checkouts or CI cache volumes. `--no-cache` disables this knob. |
 | `FALLOW_CACHE_MAX_SIZE` | Maximum on-disk extraction cache (`.fallow/cache.bin`) size in megabytes (default: `256`). Triggers LRU eviction when crossed. Wins over `cache.maxSizeMb` config field. Intended for CI runners with disk quotas. `--no-cache` short-circuits this knob. |
+| `FALLOW_COVERAGE` | Path to Istanbul coverage data for exact CRAP scoring in `health`, `audit`, and bare `fallow`. |
+| `FALLOW_COVERAGE_ROOT` | Absolute coverage-data prefix to strip before matching Istanbul paths in `health`, `audit`, and bare `fallow`. |
+| `FALLOW_TYPE_AWARE` | Enable or disable TypeScript semantic (type-aware) analysis for the run. Accepts `true`/`false`/`1`/`0`/`yes`/`no`/`on`/`off`; any other value is a hard error. Sits mid-chain in the precedence: the `--type-aware`/`--no-type-aware` CLI flags win over it, and it wins over the `audit.typeAware` config field, which wins over `typeAware.enabled`. |
 | `FALLOW_AUDIT_BASE` | Pin the `fallow audit` comparison base when `--base` / `--changed-since` is unset (precedence: flag > env > auto-detect). Escape hatch for the agent gate and forks, e.g. `FALLOW_AUDIT_BASE=upstream/main`. When unset, audit auto-detects the `git merge-base` against the branch's upstream or the remote default. A malformed value exits 2. |
 | `FALLOW_AUDIT_CACHE_MAX_AGE_DAYS` | Max age (in days since last reuse or fresh create) of a persistent reusable `fallow audit` base-snapshot worktree cache. Older entries are reclaimed at the top of the next `fallow audit` invocation (default: `30`). Wins over `audit.cacheMaxAgeDays` config field. `0` disables the GC; invalid values silently fall back to config / default. |
 | `FALLOW_UPDATE_CHECK` | Set to `off`, `0`, `false`, `disabled`, or `no` to disable the human-TTY upgrade nudge and its background latest-version check. `DO_NOT_TRACK`, `FALLOW_TELEMETRY_DISABLED`, and CI also suppress it. |
+| `FALLOW_SUGGESTIONS` | Set to `off`, `0`, `false`, `no`, or `disabled` to suppress the top-level `next_steps[]` array of read-only follow-up commands in JSON output (and the human `Next:` line on bare `fallow`). Default on. Inherited by the MCP-spawned CLI, so it disables `next_steps` on MCP responses too. Useful for CI consumers that snapshot-diff raw `--format json`. |
 | `FALLOW_COMMAND` | GitLab CI: command to run (default: `dead-code`). |
 | `FALLOW_FAIL_ON_ISSUES` | GitLab CI: set to `true` to exit 1 if issues found. |
 | `FALLOW_CHANGED_SINCE` | GitLab CI: git ref for incremental analysis. Auto-detected in MR pipelines. |
@@ -1558,6 +1792,7 @@ Available on all commands:
 | `FALLOW_REVIEW` | GitLab CI: set to `true` to post inline code review comments on MR diffs. |
 | `FALLOW_REVIEW_GUIDANCE` | Add collapsed "What to do" guidance blocks to `review-github` / `review-gitlab` inline comments. |
 | `FALLOW_SUMMARY_SCOPE` | Sticky PR/MR summary scope for `pr-comment-github` / `pr-comment-gitlab`: `all` (default) keeps project-level findings outside the diff; `diff` applies the diff filter to those findings too. Inline review comments are unaffected. |
+| `FALLOW_PR_COMMENT_LAYOUT` | Sticky PR/MR summary layout for `pr-comment-github` / `pr-comment-gitlab`: `default`, `compact`, `gate-only`, or `details`. |
 | `FALLOW_SCORE` | GitLab CI: set to `true` to compute health score in combined mode. Enables health delta header in MR comments. |
 | `FALLOW_TREND` | GitLab CI: set to `true` to compare current health metrics against saved snapshot. Implies `FALLOW_SCORE`. |
 | `FALLOW_EXTRA_ARGS` | GitLab CI: additional CLI flags passed through to fallow. |
@@ -1581,9 +1816,9 @@ Set `FALLOW_FORMAT=json` and `FALLOW_QUIET=1` in your agent environment to avoid
 | Format | Description | Use Case |
 |--------|-------------|----------|
 | `human` | Colored terminal output | Interactive use |
-| `json` | Machine-readable JSON | Agent integration, CI pipelines |
+| `json` | Compact machine-readable JSON by default; add `--pretty` for indented manual inspection | Agent integration, CI pipelines |
 | `sarif` | Static Analysis Results Interchange Format | GitHub Code Scanning, SARIF-compatible tools |
-| `compact` | Grep-friendly: `type:path:line:name` per line | Quick filtering |
+| `compact` | Grep-friendly: one issue per line. Dupes lines include `code-duplication:path:start-end:fingerprint=dup:<id>,...` | Quick filtering |
 | `markdown` | Markdown tables | Documentation, PR comments |
 | `codeclimate` / `gitlab-codequality` | CodeClimate JSON array | GitLab Code Quality, CodeClimate-compatible tools |
 | `pr-comment-github` / `pr-comment-gitlab` | Sticky PR/MR comment markdown with HTML-comment marker for upsert | Posted by the action / template `comment.sh` scripts |
@@ -1616,7 +1851,7 @@ The HTTP layer mirrors the bash `gh_api_retry` / `curl_retry` helpers: `FALLOW_A
 
 ## CI Integration
 
-- **GitHub Actions**: `uses: fallow-rs/fallow@v2` - supports SARIF upload to Code Scanning, inline PR annotations (`annotations: true`), PR comments, all commands. Annotations use workflow commands (no Advanced Security required); limit with `max-annotations` (default 50). Set `score: true` to compute health score and enable the health delta header in PR comments
+- **GitHub Actions**: `uses: fallow-rs/fallow@v3` - supports SARIF upload to Code Scanning, inline PR annotations (`annotations: true`), PR comments, all commands. Annotations use workflow commands (no Advanced Security required); limit with `max-annotations` (default 50). Set `score: true` to compute health score and enable the health delta header in PR comments
 - **GitLab CI**: include `ci/gitlab-ci.yml` template and extend `.fallow` - generates Code Quality reports via `--format codeclimate` / `--format gitlab-codequality` (inline MR annotations), rich MR comments, code review comments, all commands. Use `fallow ci-template gitlab --vendor` when runners cannot reach `raw.githubusercontent.com`; commit the generated `ci/` and `action/` files and use GitLab's local include syntax. Variables use `FALLOW_` prefix (e.g., `FALLOW_COMMAND`, `FALLOW_FAIL_ON_ISSUES`). Set `FALLOW_SCORE: "true"` to compute health score; `FALLOW_TREND: "true"` to compare against saved snapshots
 - **Any CI**: `npx fallow --ci` - equivalent to `--format sarif --fail-on-issues --quiet`
 
@@ -1631,6 +1866,7 @@ The HTTP layer mirrors the bash `gh_api_retry` / `curl_retry` helpers: `FALLOW_A
 | `FALLOW_REVIEW` | `false` | Post inline code review comments on MR diff lines where issues were found |
 | `FALLOW_REVIEW_GUIDANCE` | `false` | Add collapsed "What to do" guidance blocks to inline review comments |
 | `FALLOW_SUMMARY_SCOPE` | `all` | Sticky summary scope: `all` keeps project-level findings outside the diff; `diff` applies the diff filter to those findings too |
+| `FALLOW_PR_COMMENT_LAYOUT` | `default` | Sticky summary layout: `default`, `compact`, `gate-only`, or `details` |
 | `FALLOW_SCORE` | `false` | Compute health score (0-100 with letter grade) in combined mode. Enables the health delta header in MR comments |
 | `FALLOW_TREND` | `false` | Compare current health metrics against saved snapshot. Implies `FALLOW_SCORE`. Shows per-metric deltas |
 | `FALLOW_EXTRA_ARGS` | - | Additional CLI flags passed through to fallow |
@@ -1650,7 +1886,7 @@ The HTTP layer mirrors the bash `gh_api_retry` / `curl_retry` helpers: `FALLOW_A
 {
   "kind": "dead-code",
   "schema_version": 7,
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 45,
   "total_issues": 12,
   "entry_points": {
@@ -1810,7 +2046,7 @@ When `--baseline` is used in combined output, the JSON includes a `baseline_delt
 {
   "kind": "dupes",
   "schema_version": 7,
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 82,
   "total_clones": 15,
   "total_lines_duplicated": 230,
@@ -1854,11 +2090,11 @@ When running `fallow` with no subcommand (all analyses), the JSON output combine
 {
   "kind": "combined",
   "schema_version": 7,
-  "version": "2.92.1",
+  "version": "3.14.0",
   "elapsed_ms": 159,
   "check": {
     "schema_version": 7,
-    "version": "2.92.1",
+    "version": "3.14.0",
     "elapsed_ms": 45,
     "total_issues": 12,
     "unused_files": [],
@@ -1893,7 +2129,7 @@ When running `fallow` with no subcommand (all analyses), the JSON output combine
 }
 ```
 
-Use `--only` or `--skip` to control which analyses are included in the combined output.
+Use `--only` or `--skip` to control which analyses are included in the combined output. Use `--coverage` and `--coverage-root` to feed Istanbul coverage data to the embedded health analysis for exact CRAP scoring.
 
 With `--score`, the combined output's `health` section includes a `health_score` object (same schema as `health --score`). With `--trend`, it includes a `health_trend` object comparing against the most recent saved snapshot. With `--save-snapshot`, a vital signs snapshot is persisted for future trend comparisons.
 
@@ -2057,6 +2293,17 @@ unused-exports = "off"
 preset = "bulletproof"
 ```
 
+### Configuration field notes
+
+- `ignoreExportsUsedInFile`: knip-compatible; suppress unused-export findings when the exported symbol is referenced inside the file that declares it. Boolean (`true` covers all kinds) or `{ "type": true, "interface": true }` object form for knip parity. Fallow groups type aliases and interfaces under the same `unused-types` issue, so both type-kind fields behave identically. References inside the export specifier itself (`export { foo }`, `export default foo`) do not count as same-file uses; those exports are still reported when no other in-file expression references the binding
+- `publicPackages`: workspace packages that are public libraries; exported API surface from these packages is not flagged as unused
+- `dynamicallyLoaded`: glob patterns for files loaded at runtime (plugin dirs, locale files); treated as always-used
+- `cache.dir`: override the persistent extraction cache directory. `FALLOW_CACHE_DIR` wins over this config field, and `--no-cache` disables caching entirely
+- `cache.maxSizeMb`: cap the serialized extraction cache size in megabytes. `FALLOW_CACHE_MAX_SIZE` wins over this config field
+- `usedClassMembers`: class method/property names that extend the built-in Angular/React lifecycle allowlist with framework-invoked names. Each entry is a plain string (global suppression) or a scoped object `{ extends?, implements?, members }` matching only classes with the given heritage. Strings can be exact names (`"agInit"`) or glob patterns (`"*"` matches every member, `"enter*"` prefix, `"*Handler"` suffix, `"on*Event"` combined). Use scoped rules for common names like `refresh` or `execute` to avoid false negatives on unrelated classes; global strings for unique names like `agInit`. Example: `["agInit", { "implements": "ICellRendererAngularComp", "members": ["refresh"] }, { "extends": "BaseCommand", "members": ["execute"] }, { "extends": "GrammarBaseListener", "members": ["enter*", "exit*"] }]`. Glob patterns that match zero members emit a `WARN` so dead allowlist entries surface. An unconstrained scoped rule (no `extends` or `implements`) is rejected at load time. Use plugin-level `usedClassMembers` in a `.fallow/plugins/*.jsonc` file for library-specific allowlists
+- `resolve.conditions`: additional package.json `exports` / `imports` condition names to honor during module resolution. Baseline conditions (`development`, `import`, `require`, `default`, `types`, `node`, plus `react-native` / `browser` under RN/Expo) are always included; user entries prepend ahead of them. Use for community conditions like `worker`, `edge-light`, `deno`, or custom bundler conditions. Example: `{ "resolve": { "conditions": ["worker", "edge-light"] } }`
+- `unusedComponentProps.ignorePattern`: opt-in regex that exempts a component prop from `unused-component-props` when the prop's LOCAL destructure binding name matches (the leading-underscore "accepted-but-intentionally-unused" convention, mirroring TS `noUnusedParameters` + ESLint `varsIgnorePattern` / `argsIgnorePattern`). Applies to Vue, Svelte, Astro, and React/Preact props. The match is on the local alias (`_stage` in `let { stage: _stage } = $props()`), not the public prop name the finding reports (`stage`); matching is unanchored like ESLint's `RegExp.test`, so anchor with `^_`. An invalid regex fails config load. Example: `{ "unusedComponentProps": { "ignorePattern": "^_" } }`
+
 ---
 
 ## Inline Suppression Comments
@@ -2070,4 +2317,4 @@ preset = "bulletproof"
 
 ### Valid Issue Type Tokens
 
-`unused-file`, `unused-export`, `unused-type`, `unused-dependency`, `unused-dev-dependency`, `unused-enum-member`, `unused-class-member`, `unresolved-import`, `unlisted-dependency`, `duplicate-export`, `circular-dependency`, `re-export-cycle`, `boundary-violation`, `policy-violation`, `unused-optional-dependency`, `type-only-dependency`, `test-only-dependency`, `code-duplication`
+`unused-file`, `unused-export`, `unused-type`, `unused-dependency`, `unused-dev-dependency`, `unused-enum-member`, `unused-class-member`, `unused-store-member`, `unresolved-import`, `unlisted-dependency`, `duplicate-export`, `circular-dependency`, `re-export-cycle`, `boundary-violation`, `policy-violation`, `unused-optional-dependency`, `type-only-dependency`, `test-only-dependency`, `code-duplication`

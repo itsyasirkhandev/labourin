@@ -79,6 +79,18 @@
       "skillPath": "skills/convex-setup-auth/SKILL.md",
       "computedHash": "b1a940758751c5b2fdc6ced105b19927a1655f0c1d4bd2fd5536dc3264202c00"
     },
+    "fallow": {
+      "source": "fallow-rs/fallow-skills",
+      "sourceType": "github",
+      "skillPath": "fallow/skills/fallow/SKILL.md",
+      "computedHash": "a51e467378cf7133a01ef138a188d55d3dee9741e0d3fb0abfb01eb6ba556f69"
+    },
+    "fallow-review": {
+      "source": "fallow-rs/fallow-skills",
+      "sourceType": "github",
+      "skillPath": "fallow/skills/fallow-review/SKILL.md",
+      "computedHash": "e9cac28db2cf860d37cec8a6232534171711cef6c9534f6ae041c2b99513e9ae"
+    },
     "firebase-auth-basics": {
       "source": "firebase/agent-skills",
       "sourceType": "github",
