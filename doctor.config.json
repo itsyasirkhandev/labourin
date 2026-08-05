@@ -1,0 +1,13 @@
+{
+  "ignore": {
+    "rules": [
+      "deslop/unused-dependency",
+      "react-doctor/require-pnpm-hardening"
+    ],
+    "files": [
+      "components/ui/**",
+      "convex/**",
+      "lib/errors.ts"
+    ]
+  }
+}

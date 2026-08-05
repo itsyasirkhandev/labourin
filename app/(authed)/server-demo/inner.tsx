@@ -23,7 +23,7 @@ export default function Home({
         </code>
       </div>
       <button
-        className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg mx-auto cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg font-medium"
+        className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg mx-auto cursor-pointer transition-colors transition-shadow duration-200 shadow-md hover:shadow-lg font-medium"
         onClick={() => {
           void addNumber({ value: Math.floor(Math.random() * 10) });
         }}

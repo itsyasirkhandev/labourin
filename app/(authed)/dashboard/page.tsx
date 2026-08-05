@@ -53,7 +53,7 @@ export default function DashboardPage() {
           automatically!
         </p>
         <button
-          className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-sm font-medium px-6 py-3 rounded-xl cursor-pointer transition-all duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] w-fit"
+          className="bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-sm font-medium px-6 py-3 rounded-xl cursor-pointer transition-colors transition-transform transition-shadow duration-200 shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] w-fit"
           onClick={() => {
             void addNumber({ value: Math.floor(Math.random() * 10) });
           }}
