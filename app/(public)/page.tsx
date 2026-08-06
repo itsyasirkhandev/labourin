@@ -74,12 +74,11 @@ export default function LandingPage() {
         </div>
 
         <h1 className="font-sans text-5xl font-bold tracking-tight text-foreground sm:text-6xl text-balance">
-          Clerk, Convex, Nextjs Starter Template
+          LabourIn
         </h1>
 
         <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
-          A convention-heavy starter template for building real apps with Convex,
-          Next.js, Clerk Auth, Effect-TS, and Zustand.
+          LabourIn connects customers with verified, available service providers.
         </p>
 
         {/* CTA Buttons */}

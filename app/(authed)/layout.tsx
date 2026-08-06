@@ -45,7 +45,7 @@ function Sidebar() {
       >
         <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
           <Link href="/" className="text-lg font-bold text-sidebar-foreground font-sans">
-            Starter Template
+            LabourIn
           </Link>
           <button
             type="button"
@@ -83,7 +83,7 @@ function Sidebar() {
 
         <div className="p-3 border-t border-sidebar-border">
           <p className="text-xs text-muted-foreground text-center">
-            Starter Template v0.1.0
+            LabourIn v0.1.0
           </p>
         </div>
       </aside>

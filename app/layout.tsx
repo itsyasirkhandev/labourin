@@ -22,9 +22,9 @@ const fontMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Clerk, Convex, Nextjs Starter Template",
+  title: "LabourIn",
   description:
-    "Convention-heavy starter template with Convex, Next.js, Clerk Auth, Effect-TS, and Zustand.",
+    "LabourIn connects customers with verified, available service providers.",
   icons: {
     icon: "/convex.svg",
   },
