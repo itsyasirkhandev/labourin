@@ -50,6 +50,14 @@ async function getViewer(ctx: QueryCtx | MutationCtx, identity: UserIdentity) {
 			.unique();
 	}
 
+	const email = identity.email;
+	if (!viewer && email) {
+		viewer = await ctx.db
+			.query('users')
+			.withIndex('by_email', (q) => q.eq('email', email))
+			.first();
+	}
+
 	return viewer;
 }
 

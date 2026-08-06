@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, IBM_Plex_Sans, Playfair_Display } from "next/font/google";
+import { JetBrains_Mono, IBM_Plex_Sans, Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 import { cn } from "@/lib/utils";
@@ -11,11 +11,7 @@ const playfairDisplay = Playfair_Display({
   variable: "--font-heading",
 });
 
-const ibmPlexSans = IBM_Plex_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-sans",
-});
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
@@ -40,7 +36,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        ibmPlexSans.variable,
+        inter.variable,
         jetbrainsMono.variable,
         playfairDisplay.variable,
         "font-sans"

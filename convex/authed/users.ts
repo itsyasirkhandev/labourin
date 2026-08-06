@@ -38,21 +38,39 @@ export const getOrCreateUser = effectAuthedMutation({
 				);
 			}
 
+			const userEmail = identity.email;
+			if (!viewer && userEmail) {
+				viewer = yield* Effect.tryPromise(() =>
+					writerDb
+						.query('users')
+						.withIndex('by_email', (q) => q.eq('email', userEmail))
+						.first()
+				);
+			}
+
+			const name =
+				identity.name ||
+				[identity.givenName, identity.familyName].filter(Boolean).join(' ') ||
+				identity.nickname ||
+				'';
+			const email = identity.email ?? '';
+			const pictureUrl = identity.pictureUrl;
+
 			if (viewer) {
 				const updates: Record<string, string | undefined> = {};
-				if (identity.name && viewer.name !== identity.name) {
-					updates.name = identity.name;
+				if (name && viewer.name !== name) {
+					updates.name = name;
 				}
-				if (identity.email && viewer.email !== identity.email) {
-					updates.email = identity.email;
+				if (email && viewer.email !== email) {
+					updates.email = email;
 				}
-				if (identity.pictureUrl && viewer.avatarUrl !== identity.pictureUrl) {
-					updates.avatarUrl = identity.pictureUrl;
+				if (pictureUrl && viewer.avatarUrl !== pictureUrl) {
+					updates.avatarUrl = pictureUrl;
 				}
-				if (viewer.clerkId !== identity.subject) {
+				if (identity.subject && viewer.clerkId !== identity.subject) {
 					updates.clerkId = identity.subject;
 				}
-				if (viewer.tokenIdentifier !== tokenIdentifier) {
+				if (tokenIdentifier && viewer.tokenIdentifier !== tokenIdentifier) {
 					updates.tokenIdentifier = tokenIdentifier;
 				}
 
@@ -63,9 +81,9 @@ export const getOrCreateUser = effectAuthedMutation({
 			} else {
 				const userId = yield* Effect.tryPromise(() =>
 					writerDb.insert('users', {
-						name: identity.name ?? '',
-						email: identity.email ?? '',
-						avatarUrl: identity.pictureUrl,
+						name,
+						email,
+						avatarUrl: pictureUrl,
 						tokenIdentifier,
 						clerkId: identity.subject
 					})

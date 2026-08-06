@@ -9,27 +9,43 @@ export const upsertFromClerk = internalMutation({
     const name = `${data.first_name ?? ""} ${data.last_name ?? ""}`.trim();
     const avatarUrl = data.image_url;
 
-    // See if the user already exists by clerkId
-    const existing = await ctx.db
+    const domain = process.env.CLERK_FRONTEND_API_URL || process.env.CLERK_JWT_ISSUER_DOMAIN;
+    const tokenIdentifier = domain ? `${domain}|${clerkId}` : `clerk|${clerkId}`;
+
+    // 1. Check by clerkId
+    let existing = await ctx.db
       .query("users")
       .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
       .unique();
 
+    // 2. Check by tokenIdentifier
+    if (!existing && tokenIdentifier) {
+      existing = await ctx.db
+        .query("users")
+        .withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
+        .unique();
+    }
+
+    // 3. Check by email if non-empty
+    if (!existing && email) {
+      existing = await ctx.db
+        .query("users")
+        .withIndex("by_email", (q) => q.eq("email", email))
+        .first();
+    }
+
     if (existing) {
-      await ctx.db.patch(existing._id, {
-        name,
-        email,
-        avatarUrl,
-      });
+      const updates: Record<string, string | undefined> = {};
+      if (name && existing.name !== name) updates.name = name;
+      if (email && existing.email !== email) updates.email = email;
+      if (avatarUrl && existing.avatarUrl !== avatarUrl) updates.avatarUrl = avatarUrl;
+      if (clerkId && existing.clerkId !== clerkId) updates.clerkId = clerkId;
+      if (tokenIdentifier && existing.tokenIdentifier !== tokenIdentifier) updates.tokenIdentifier = tokenIdentifier;
+
+      if (Object.keys(updates).length > 0) {
+        await ctx.db.patch(existing._id, updates);
+      }
     } else {
-      // It doesn't exist by clerkId. Let's check if it exists by tokenIdentifier (from authed login)
-      // The identity.subject from Clerk is the clerkId, and the issuer is usually the JWT domain.
-      // We will try to find it by tokenIdentifier if we could reconstruct it, but we don't have it here directly unless we know the issuer.
-      // A common pattern is to just insert it. Wait, the user might be created by getOrCreateUser first.
-      // If we are to insert, we need a tokenIdentifier.
-      const issuer = process.env.CLERK_JWT_ISSUER_DOMAIN;
-      const tokenIdentifier = issuer ? `${issuer}|${clerkId}` : `clerk|${clerkId}`;
-      
       await ctx.db.insert("users", {
         name,
         email,
