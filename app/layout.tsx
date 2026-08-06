@@ -1,19 +1,22 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, IBM_Plex_Sans, Playfair_Display, Inter } from "next/font/google";
+import { Plus_Jakarta_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 import { cn } from "@/lib/utils";
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
-const playfairDisplay = Playfair_Display({
+const fontSans = Plus_Jakarta_Sans({
   subsets: ["latin"],
-  variable: "--font-heading",
+  variable: "--font-sans",
 });
 
-const inter = Inter({subsets:['latin'],variable:'--font-sans'});
+const fontSerif = Source_Serif_4({
+  subsets: ["latin"],
+  variable: "--font-serif",
+});
 
-const jetbrainsMono = JetBrains_Mono({
+const fontMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
@@ -36,9 +39,9 @@ export default function RootLayout({
     <html
       lang="en"
       className={cn(
-        inter.variable,
-        jetbrainsMono.variable,
-        playfairDisplay.variable,
+        fontSans.variable,
+        fontSerif.variable,
+        fontMono.variable,
         "font-sans"
       )}
     >

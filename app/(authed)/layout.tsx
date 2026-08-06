@@ -39,21 +39,21 @@ function Sidebar() {
       <aside
         id="app-sidebar"
         aria-label="Sidebar navigation"
-        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800 flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
+        className={`fixed lg:static inset-y-0 left-0 z-50 w-64 bg-sidebar text-sidebar-foreground border-r border-sidebar-border flex flex-col transition-transform duration-200 ease-in-out lg:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between p-4 border-b border-slate-100 dark:border-slate-800">
-          <Link href="/" className="text-lg font-bold text-slate-800 dark:text-slate-200 font-heading">
+        <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+          <Link href="/" className="text-lg font-bold text-sidebar-foreground font-sans">
             Starter Template
           </Link>
           <button
             type="button"
             onClick={toggleSidebar}
             aria-label="Close sidebar"
-            className="lg:hidden p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+            className="lg:hidden p-1 rounded-lg hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors cursor-pointer"
           >
-            <X size={18} aria-hidden="true" className="text-slate-500" />
+            <X size={18} aria-hidden="true" className="text-muted-foreground" />
           </button>
         </div>
 
@@ -70,8 +70,8 @@ function Sidebar() {
                 }}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors duration-150 ${
                   isActive
-                    ? "bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-slate-100"
-                    : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/50 hover:text-slate-700 dark:hover:text-slate-300"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
                 }`}
               >
                 <Icon size={18} weight={isActive ? "fill" : "regular"} aria-hidden="true" />
@@ -81,8 +81,8 @@ function Sidebar() {
           })}
         </nav>
 
-        <div className="p-3 border-t border-slate-100 dark:border-slate-800">
-          <p className="text-xs text-slate-500 dark:text-slate-400 text-center">
+        <div className="p-3 border-t border-sidebar-border">
+          <p className="text-xs text-muted-foreground text-center">
             Starter Template v0.1.0
           </p>
         </div>
@@ -96,16 +96,16 @@ function Header() {
   const sidebarOpen = useAppStore((s) => s.sidebarOpen);
 
   return (
-    <header className="sticky top-0 z-10 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center justify-between">
+    <header className="sticky top-0 z-10 bg-background/80 backdrop-blur-md border-b border-border px-4 py-3 flex items-center justify-between">
       <button
         type="button"
         onClick={toggleSidebar}
         aria-label="Open sidebar"
         aria-expanded={sidebarOpen}
         aria-controls="app-sidebar"
-        className="lg:hidden p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer"
+        className="lg:hidden p-2 rounded-lg hover:bg-accent hover:text-accent-foreground transition-colors cursor-pointer"
       >
-        <List size={20} aria-hidden="true" className="text-slate-600 dark:text-slate-400" />
+        <List size={20} aria-hidden="true" className="text-muted-foreground" />
       </button>
 
       <div className="flex-1" />

@@ -15,20 +15,20 @@ export default function Home({
       <div
         role="status"
         aria-live="polite"
-        className="flex flex-col gap-4 bg-slate-100 dark:bg-slate-800 border border-slate-300 dark:border-slate-600 p-6 rounded-xl shadow-md"
+        className="flex flex-col gap-4 bg-card text-card-foreground border border-border p-6 rounded-xl shadow-md"
       >
-        <h2 className="text-xl font-bold text-slate-800 dark:text-slate-200">
+        <h2 className="text-xl font-bold text-foreground font-sans">
           Reactive client-loaded data
         </h2>
-        <code className="bg-white dark:bg-slate-900 p-4 rounded-lg border border-slate-300 dark:border-slate-600 overflow-x-auto">
-          <pre className="text-sm text-slate-700 dark:text-slate-300">
+        <code className="bg-muted p-4 rounded-lg border border-border overflow-x-auto">
+          <pre className="text-sm text-muted-foreground font-mono">
             {JSON.stringify(data, null, 2)}
           </pre>
         </code>
       </div>
       <button
         type="button"
-        className="bg-slate-700 hover:bg-slate-800 dark:bg-slate-600 dark:hover:bg-slate-500 text-white px-6 py-3 rounded-lg mx-auto cursor-pointer transition-colors transition-shadow duration-200 shadow-md hover:shadow-lg font-medium"
+        className="bg-primary hover:bg-primary/90 text-primary-foreground px-6 py-3 rounded-lg mx-auto cursor-pointer transition-colors transition-shadow duration-200 shadow-md hover:shadow-lg font-medium"
         onClick={() => {
           void addNumber({ value: Math.floor(Math.random() * 10) });
         }}

@@ -36,7 +36,7 @@ const features = [
 
 export default function LandingPage() {
   return (
-    <div className="flex flex-col items-center">
+    <div className="flex flex-col items-center min-h-screen bg-background text-foreground px-4 py-6">
       {/* Top bar with theme toggle */}
       <div className="flex w-full justify-end">
         <ThemeToggle />
@@ -52,7 +52,7 @@ export default function LandingPage() {
             height={48}
             priority
           />
-          <span aria-hidden="true" className="text-3xl font-light text-slate-300 dark:text-slate-600">
+          <span aria-hidden="true" className="text-3xl font-light text-muted-foreground">
             ×
           </span>
           <Image
@@ -73,11 +73,11 @@ export default function LandingPage() {
           />
         </div>
 
-        <h1 className="font-heading text-5xl font-bold tracking-tight text-slate-900 dark:text-white sm:text-6xl text-balance">
+        <h1 className="font-sans text-5xl font-bold tracking-tight text-foreground sm:text-6xl text-balance">
           Clerk, Convex, Nextjs Starter Template
         </h1>
 
-        <p className="max-w-2xl text-lg leading-relaxed text-slate-500 dark:text-slate-400">
+        <p className="max-w-2xl text-lg leading-relaxed text-muted-foreground">
           A convention-heavy starter template for building real apps with Convex,
           Next.js, Clerk Auth, Effect-TS, and Zustand.
         </p>
@@ -87,7 +87,7 @@ export default function LandingPage() {
           <Show when="signed-in">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Open Dashboard <span aria-hidden="true">→</span>
             </Link>
@@ -96,14 +96,14 @@ export default function LandingPage() {
           <Show when="signed-out">
             <Link
               href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl bg-emerald-600 px-6 py-3 text-sm font-semibold text-white shadow-sm transition-colors duration-200 hover:bg-emerald-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
             >
               Go to Dashboard <span aria-hidden="true">→</span>
             </Link>
             <SignInButton mode="modal">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm transition-colors duration-200 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:bg-slate-700"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-card-foreground shadow-sm transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
               >
                 <LockKey size={18} weight="bold" aria-hidden="true" />
                 Sign in
@@ -114,22 +114,22 @@ export default function LandingPage() {
       </section>
 
       {/* Feature Cards */}
-      <section className="mt-20 grid w-full gap-4 sm:grid-cols-2">
+      <section className="mt-20 grid w-full max-w-4xl gap-4 sm:grid-cols-2">
         {features.map((feature) => (
           <div
             key={feature.title}
-            className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm transition-shadow duration-200 hover:shadow-md dark:border-slate-800 dark:bg-slate-900"
+            className="rounded-2xl border border-border bg-card p-6 text-card-foreground shadow-sm transition-shadow duration-200 hover:shadow-md"
           >
             <feature.icon
               size={28}
               weight="duotone"
               aria-hidden="true"
-              className="mb-3 text-emerald-600 dark:text-emerald-400"
+              className="mb-3 text-primary"
             />
-            <h3 className="font-heading text-lg font-semibold text-slate-900 dark:text-white">
+            <h3 className="font-sans text-lg font-semibold text-foreground">
               {feature.title}
             </h3>
-            <p className="mt-1 text-sm leading-relaxed text-slate-500 dark:text-slate-400">
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
               {feature.description}
             </p>
           </div>
@@ -137,7 +137,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer tagline */}
-      <p className="mt-16 pb-8 text-center font-mono text-xs text-slate-600 dark:text-slate-400">
+      <p className="mt-16 pb-8 text-center font-mono text-xs text-muted-foreground">
         npx create-next-app <span aria-hidden="true">→</span> npx convex dev <span aria-hidden="true">→</span> build something real
       </p>
     </div>
