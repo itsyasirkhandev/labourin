@@ -54,6 +54,6 @@ all it needs. There is no conflict with Convex's transaction semantics.
 ## Consequences
 
 - `effect` is a production dependency
-- Every Convex function handler uses `effectAuthed` or `effectPrivate` wrappers returning an `Effect`
+- Every Convex function handler uses `effectAuthed` or `effectInternal` wrappers returning an `Effect`
 - Demo files (`authed/demo.ts`, `private/demo.ts`) show the same pattern as real feature files
 

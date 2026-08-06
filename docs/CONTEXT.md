@@ -24,7 +24,7 @@ A convention-heavy starter template for building real apps.
 | **Number** | A demo entity stored in Convex — represents any simple data record |
 | **Auth Guard** | A `customCtxAndArgs` wrapper that validates the JWT and injects `ctx.identity` |
 | **Authed function** | A Convex query/mutation/action protected by the auth guard (client-facing) |
-| **Private function** | A Convex function protected by an API key guard (server-to-server) |
+| **Internal function** | A Convex query/mutation/action registered with `internal*` and callable only from other Convex functions (Convex-to-Convex) |
 
 ## Conventions
 
@@ -34,7 +34,7 @@ A convention-heavy starter template for building real apps.
 
 ### Convex Function Organization
 - `convex/authed/` — Client-facing functions protected by Clerk JWT
-- `convex/private/` — Server-to-server functions protected by API key
+- `convex/private/` — Convex-to-Convex functions registered with built-in `internal*`
 - Each feature gets its own file (e.g., `numbers.ts`, `users.ts`)
 - Demo files (`demo.ts`) are kept as AI-readable convention references
 

@@ -1,6 +1,6 @@
-# ADR 0004: Authed vs Private function guard convention
+# ADR 0004: Authed vs Internal function guard convention
 
-**Status**: Accepted (updated 2026-06-09)
+**Status**: Accepted (updated 2026-08-06)
 **Date**: 2025-01-01
 
 ## Context
@@ -9,7 +9,7 @@ Convex functions need different security models depending on who calls them.
 
 ## Decision
 
-Two guard patterns via `convex-helpers/server/customFunctions`:
+Two guard patterns: the authed guard uses `convex-helpers/server/customFunctions`, the internal guard uses Convex's built-in registration:
 
 ### Authed guard (`convex/authed/helpers.ts`)
 - For **client-facing** functions
@@ -17,10 +17,10 @@ Two guard patterns via `convex-helpers/server/customFunctions`:
 - Injects `ctx.identity` into the handler as `AuthedContext` Effect Service
 - Use: `effectAuthedQuery`, `effectAuthedMutation`, `effectAuthedAction`
 
-### Private guard (`convex/private/helpers.ts`)
-- For **server-to-server** functions
-- Validates an API key from function arguments
-- Use: `effectPrivateQuery`, `effectPrivateMutation`, `effectPrivateAction`
+### Internal guard (`convex/private/helpers.ts`)
+- For **Convex-to-Convex** functions
+- Uses Convex's built-in `internalQuery`, `internalMutation`, and `internalAction` registration, so the functions are never part of the public HTTP API
+- Use: `effectInternalQuery`, `effectInternalMutation`, `effectInternalAction`
 
 ## Rationale
 
@@ -35,12 +35,12 @@ Two guard patterns via `convex-helpers/server/customFunctions`:
 |----------|-------|
 | React hook calls (useQuery, useMutation) | `authed` |
 | Server component preloading | `authed` |
-| Backend-to-backend calls | `private` |
+| Backend-to-backend calls | `internal` (Convex built-in) |
 | Cron jobs | `internal` (Convex built-in) |
 | Webhooks | `httpAction` |
 
 ## Demo files
 
 - `convex/authed/demo.ts` — Minimal working example of the authed pattern
-- `convex/private/demo.ts` — Minimal working example of the private pattern
+- `convex/private/demo.ts` — Minimal working example of the internal pattern
 - These are **AI-readable convention references**, not dead code

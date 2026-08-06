@@ -37,11 +37,20 @@ http.route({
 
     switch (event.type) {
       case "user.created":
-      case "user.updated":
+      case "user.updated": {
+        const user = event.data;
         await ctx.runMutation(internal.users.upsertFromClerk, {
-          data: event.data,
+          data: {
+            id: user.id,
+            firstName: user.first_name ?? undefined,
+            lastName: user.last_name ?? undefined,
+            avatarUrl: user.image_url ?? undefined,
+            email: user.email_addresses?.[0]?.email_address ?? undefined,
+            phoneNumber: user.phone_numbers?.[0]?.phone_number ?? undefined,
+          },
         });
         break;
+      }
 
       case "user.deleted": {
         const clerkUserId = event.data.id;

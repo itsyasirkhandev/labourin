@@ -1,4 +1,4 @@
-// User management — syncs Firebase auth identity to the Convex users table.
+// User management — syncs Clerk auth identity to the Convex users table.
 //
 // This file shows the pattern for user upsert:
 // 1. Look up user by tokenIdentifier (stable across token refreshes)
@@ -17,7 +17,7 @@ export const getOrCreateUser = effectAuthedMutation({
 		Effect.gen(function* () {
 			const { identity } = yield* AuthedContext;
 			yield* Effect.logInfo(`getOrCreateUser for: ${identity.email || 'unknown'}`);
-            
+
 			const { db } = yield* ConvexDB;
 			const writerDb = db as GenericDatabaseWriter<DataModel>;
 			const tokenIdentifier = identity.tokenIdentifier;
@@ -53,11 +53,23 @@ export const getOrCreateUser = effectAuthedMutation({
 				[identity.givenName, identity.familyName].filter(Boolean).join(' ') ||
 				identity.nickname ||
 				'';
-			const email = identity.email ?? '';
+			// Facebook identities may not expose an email, so it stays optional.
+			const email = identity.email;
 			const pictureUrl = identity.pictureUrl;
 
+			const now = Date.now();
+
 			if (viewer) {
-				const updates: Record<string, string | undefined> = {};
+				const updates: {
+					name?: string;
+					email?: string;
+					avatarUrl?: string;
+					clerkId?: string;
+					tokenIdentifier?: string;
+					accountStatus?: 'active' | 'deleted';
+					deletedAt?: number;
+					updatedAt?: number;
+				} = {};
 				if (name && viewer.name !== name) {
 					updates.name = name;
 				}
@@ -74,7 +86,14 @@ export const getOrCreateUser = effectAuthedMutation({
 					updates.tokenIdentifier = tokenIdentifier;
 				}
 
+				// Reactivate a soft-deleted account when the user signs back in.
+				if (viewer.accountStatus === 'deleted') {
+					updates.accountStatus = 'active';
+					updates.deletedAt = undefined;
+				}
+
 				if (Object.keys(updates).length > 0) {
+					updates.updatedAt = now;
 					yield* Effect.tryPromise(() => writerDb.patch(viewer!._id, updates));
 					viewer = (yield* Effect.tryPromise(() => writerDb.get(viewer!._id)))!;
 				}
@@ -85,7 +104,10 @@ export const getOrCreateUser = effectAuthedMutation({
 						email,
 						avatarUrl: pictureUrl,
 						tokenIdentifier,
-						clerkId: identity.subject
+						clerkId: identity.subject,
+						accountStatus: 'active',
+						createdAt: now,
+						updatedAt: now
 					})
 				);
 				viewer = (yield* Effect.tryPromise(() => writerDb.get(userId)))!;

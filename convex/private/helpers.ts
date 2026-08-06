@@ -1,54 +1,23 @@
-// "private" queries/mutations/actions are ones that get called from the backend, not the client
-// they're all protected by the CONVEX_PRIVATE_BRIDGE_KEY
+// "private" queries/mutations/actions are ones that get called from other Convex
+// functions, never from the client. They use Convex's built-in internal functions
+// (internalQuery/internalMutation/internalAction), which are not exposed over HTTP.
 
-import { v } from 'convex/values';
-import {
-	customAction,
-	customCtxAndArgs,
-	customMutation,
-	customQuery
-} from 'convex-helpers/server/customFunctions';
-import { action, mutation, query } from '../_generated/server';
+import { internalQuery, internalMutation, internalAction } from '../_generated/server';
 import { ObjectType, PropertyValidators } from 'convex/values';
 import { Effect } from 'effect';
 import { ConvexDB } from '../services/ConvexDB';
-import { ServerConfig } from '../services/ServerConfig';
-
-const apiKeyGuard = customCtxAndArgs({
-	args: { apiKey: v.string() },
-	input: async (ctx, { apiKey }) => {
-		const config = await Effect.runPromise(
-			ServerConfig.pipe(Effect.provide(ServerConfig.layer))
-		);
-		if (apiKey !== config.convexPrivateBridgeKey) {
-			throw new Error('Invalid API key');
-		}
-		return { ctx, args: {} };
-	}
-});
-
-export const privateQuery = customQuery(query, apiKeyGuard);
-export const privateMutation = customMutation(mutation, apiKeyGuard);
-export const privateAction = customAction(action, apiKeyGuard);
-
 import { runEffect } from "../effectHelpers";
 
-export async function runPrivateEffect<Result, Error>(
-	effect: Effect.Effect<Result, Error, never>
-): Promise<Result> {
-	return runEffect(effect);
-}
-
-export const effectPrivateQuery = <Args extends PropertyValidators, R, E>(options: {
+export const effectInternalQuery = <Args extends PropertyValidators, R, E>(options: {
 	args: Args;
 	handler: (args: ObjectType<Args>) => Effect.Effect<R, E, ConvexDB>;
 }) => {
-	return privateQuery({
+	return internalQuery({
 		args: options.args,
-		// @ts-expect-error - Convex customQuery generic wrapper TS mismatch
-		handler: async (ctx, args) => {
-			return runPrivateEffect(
-				options.handler(args as unknown as ObjectType<Args>).pipe(
+		handler: async (ctx, ...args) => {
+			const [argsObj] = args as [ObjectType<Args>];
+			return runEffect(
+				options.handler(argsObj).pipe(
 					Effect.provideService(ConvexDB, { db: ctx.db })
 				)
 			) as Promise<R>;
@@ -56,16 +25,16 @@ export const effectPrivateQuery = <Args extends PropertyValidators, R, E>(option
 	});
 };
 
-export const effectPrivateMutation = <Args extends PropertyValidators, R, E>(options: {
+export const effectInternalMutation = <Args extends PropertyValidators, R, E>(options: {
 	args: Args;
 	handler: (args: ObjectType<Args>) => Effect.Effect<R, E, ConvexDB>;
 }) => {
-	return privateMutation({
+	return internalMutation({
 		args: options.args,
-		// @ts-expect-error - Convex customQuery generic wrapper TS mismatch
-		handler: async (ctx, args) => {
-			return runPrivateEffect(
-				options.handler(args as unknown as ObjectType<Args>).pipe(
+		handler: async (ctx, ...args) => {
+			const [argsObj] = args as [ObjectType<Args>];
+			return runEffect(
+				options.handler(argsObj).pipe(
 					Effect.provideService(ConvexDB, { db: ctx.db })
 				)
 			) as Promise<R>;
@@ -73,16 +42,16 @@ export const effectPrivateMutation = <Args extends PropertyValidators, R, E>(opt
 	});
 };
 
-export const effectPrivateAction = <Args extends PropertyValidators, R, E>(options: {
+export const effectInternalAction = <Args extends PropertyValidators, R, E>(options: {
 	args: Args;
 	handler: (args: ObjectType<Args>) => Effect.Effect<R, E, never>;
 }) => {
-	return privateAction({
+	return internalAction({
 		args: options.args,
-		// @ts-expect-error - Convex customQuery generic wrapper TS mismatch
-		handler: async (ctx, args) => {
-			return runPrivateEffect(
-				options.handler(args as unknown as ObjectType<Args>)
+		handler: async (ctx, ...args) => {
+			const [argsObj] = args as [ObjectType<Args>];
+			return runEffect(
+				options.handler(argsObj)
 			) as Promise<R>;
 		}
 	});

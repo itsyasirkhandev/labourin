@@ -1,18 +1,19 @@
-// Private convention reference — AI-readable demonstration of the server-to-server pattern.
+// Private convention reference — AI-readable demonstration of the Convex-to-Convex pattern.
 //
-// Pattern: effectPrivateQuery with Effect.gen + Effect.tryPromise for all async work.
-// See docs/adr/0003-effect-ts-convex.md and docs/adr/0004-authed-private-convention.md.
+// Pattern: effectInternalQuery with Effect.gen + Effect.tryPromise for all async work.
+// Internal functions are registered with internal* and callable only from other Convex
+// functions. See docs/adr/0003-effect-ts-convex.md and docs/adr/0004-authed-private-convention.md.
 
 import { v } from 'convex/values';
-import { effectPrivateQuery } from './helpers';
+import { effectInternalQuery } from './helpers';
 import { Effect, Schema } from 'effect';
 
-// Domain error for private routes using Effect v4 TaggedErrorClass
+// Domain error for internal routes using Effect v4 TaggedErrorClass
 export class PrivateDemoError extends Schema.TaggedErrorClass<PrivateDemoError>()("PrivateDemoError", {
 	message: Schema.String
 }) {}
 
-export const privateDemoQuery = effectPrivateQuery({
+export const privateDemoQuery = effectInternalQuery({
 	args: {
 		username: v.string()
 	},
@@ -21,7 +22,7 @@ export const privateDemoQuery = effectPrivateQuery({
 			const { username } = args;
 
 			// 1. Structured logging with Effect
-			yield* Effect.logInfo(`Private backend route accessed for: ${username}`);
+			yield* Effect.logInfo(`Internal Convex-to-Convex route accessed for: ${username}`);
 
 			// 2. Typed domain error
 			if (username === 'admin') {
