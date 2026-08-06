@@ -1,6 +1,6 @@
-# Clerk, Convex, Nextjs Starter Template
+# LabourIn
 
-Convention-heavy starter template with Next.js, Convex, Clerk Auth, Effect-TS, and Zustand.
+LabourIn is a mobile-first platform connecting customers with verified, available service providers. Built with Next.js, Convex, Clerk Auth, Effect-TS, and Zustand.
 
 ## Tech Stack
 

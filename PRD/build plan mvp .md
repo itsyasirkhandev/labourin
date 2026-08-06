@@ -1,4 +1,4 @@
-## **FixNow PK MVP — Complete Plan (Pages \+ Features \+ Architecture \+ Tech Stack Usage)**
+## **LabourIn PK MVP — Complete Plan (Pages \+ Features \+ Architecture \+ Tech Stack Usage)**
 
 ### **What you are building (MVP definition)**
 

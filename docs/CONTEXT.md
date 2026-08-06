@@ -1,6 +1,6 @@
-# Project Context — Clerk, Convex, Nextjs Starter Template
+# Project Context — LabourIn
 
-A convention-heavy starter template for building real apps.
+LabourIn is a mobile-first platform connecting customers with verified, available service providers.
 
 ## Tech Stack
 

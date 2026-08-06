@@ -1,8 +1,8 @@
-# FixNow PK MVP Convex Backend Plan
+# LabourIn PK MVP Convex Backend Plan
 
 ## Purpose
 
-This document is the implementation reference for the FixNow PK MVP backend. It refines the product plan in `PRD/build plan mvp .md` into a Convex schema, authorization model, API surface, request state machine, storage policy, testing strategy, and implementation sequence.
+This document is the implementation reference for the LabourIn PK MVP backend. It refines the product plan in `PRD/build plan mvp .md` into a Convex schema, authorization model, API surface, request state machine, storage policy, testing strategy, and implementation sequence.
 
 The architecture is organized around four boundaries:
 

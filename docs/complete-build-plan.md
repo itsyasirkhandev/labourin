@@ -1,8 +1,8 @@
-# FixNow PK MVP Complete Build Plan
+# LabourIn PK MVP Complete Build Plan
 
 ## Purpose
 
-This document defines the complete implementation order for the FixNow PK MVP, from the existing starter repository to a production-ready launch. It covers foundations, Convex backend work, authentication, shared UI, every MVP page, role workflows, tests, security, accessibility, deployment, and launch verification.
+This document defines the complete implementation order for the LabourIn PK MVP, from the existing starter repository to a production-ready launch. It covers foundations, Convex backend work, authentication, shared UI, every MVP page, role workflows, tests, security, accessibility, deployment, and launch verification.
 
 Use these documents together:
 
@@ -48,7 +48,7 @@ The MVP excludes payments, ratings, reviews, in-app chat, maps, automatic dispat
 
 ### Still To Build or Replace
 
-- FixNow branding and application metadata
+- LabourIn branding and application metadata
 - Dedicated sign-in experience and redirect behavior
 - Role selection and role-aware routing
 - Customer, provider, and admin application shells
@@ -182,7 +182,7 @@ Resolve implementation-level product constants before changing the schema or bui
 
 ### Goal
 
-Turn the starter into a reliable FixNow development base before feature implementation.
+Turn the starter into a reliable LabourIn development base before feature implementation.
 
 ### Backend Work
 
@@ -198,7 +198,7 @@ Turn the starter into a reliable FixNow development base before feature implemen
 
 ### Frontend Work
 
-- Replace starter metadata with FixNow title, description, and icons.
+- Replace starter metadata with LabourIn title, description, and icons.
 - Establish responsive page width, spacing, typography, color, focus, and touch-target conventions.
 - Keep shared `Toaster` and tooltip providers.
 - Create reusable full-page loading, inline loading, empty state, error state, and unauthorized state components.
@@ -1068,13 +1068,13 @@ Account -> Clerk user controls
 
 ### Goal
 
-Replace the starter marketing page with a credible FixNow public experience.
+Replace the starter marketing page with a credible LabourIn public experience.
 
 ### Page: `/`
 
 Sections:
 
-- Header with FixNow logo and Get Started action.
+- Header with LabourIn logo and Get Started action.
 - Hero explaining fast local service discovery.
 - Supported cities: Lahore, Karachi, and Islamabad.
 - Service category icon strip using active catalog data or a stable initial subset.
@@ -1346,7 +1346,7 @@ Remove temporary scaffolding only after all production replacements are working.
 - Remove unused starter skeletons and assets.
 - Remove obsolete private API-key examples only if they are no longer intentionally retained as project references.
 - Keep convention demos only when documentation explicitly depends on them.
-- Update README from starter setup to FixNow development instructions.
+- Update README from starter setup to LabourIn development instructions.
 - Update `docs/CONTEXT.md` domain glossary and route conventions.
 - Document seed commands and admin setup.
 - Document Clerk webhook URL and expected event types.
