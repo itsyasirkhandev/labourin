@@ -16,6 +16,8 @@ vi.mock("next/navigation", () => ({
 
 vi.mock("@clerk/nextjs", () => ({
   useAuth: () => ({ isLoaded: true, isSignedIn: true }),
+  SignOutButton: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  UserButton: () => <div data-testid="user-button">UserButton</div>,
 }));
 
 vi.mock("convex/react", () => ({

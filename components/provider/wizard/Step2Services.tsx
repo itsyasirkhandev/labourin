@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -29,6 +29,8 @@ export function Step2Services({
 }: Step2ServicesProps) {
   const [error, setError] = useState<string | null>(null);
 
+  const seedInitialData = useMutation(api.public.seed.seedInitialData);
+
   // Fetch categories & skills from Convex public queries
   const convexCategories = useQuery(api.public.categories.listCategories, {
     onlyActive: true,
@@ -42,6 +44,54 @@ export function Step2Services({
         }
       : "skip"
   );
+
+  // Auto-seed database if empty
+  useEffect(() => {
+    if (convexCategories !== undefined && convexCategories.length === 0) {
+      seedInitialData().catch(console.error);
+    }
+  }, [convexCategories, seedInitialData]);
+
+  // Auto-heal fallback category ID to real DB ID
+  useEffect(() => {
+    if (formData.primaryCategoryId?.startsWith("fallback_") && convexCategories && convexCategories.length > 0) {
+      const fallbackCat = FALLBACK_CATEGORIES.find((c) => c._id === formData.primaryCategoryId);
+      const matchedCat = convexCategories.find(
+        (c) => c.slug === fallbackCat?.slug || c.name === fallbackCat?.name
+      );
+      if (matchedCat) {
+        updateFormData({ primaryCategoryId: matchedCat._id, skillIds: [] });
+      }
+    }
+  }, [formData.primaryCategoryId, convexCategories, updateFormData]);
+
+  // Auto-heal fallback skill IDs to real DB skill IDs
+  useEffect(() => {
+    if (
+      formData.skillIds.some((id) => id.startsWith("fallback_")) &&
+      convexSkills &&
+      convexSkills.length > 0 &&
+      formData.primaryCategoryId &&
+      !formData.primaryCategoryId.startsWith("fallback_")
+    ) {
+      const fallbackCat = FALLBACK_CATEGORIES.find((c) =>
+        c.skills.some((s) => formData.skillIds.includes(s._id))
+      );
+      if (fallbackCat) {
+        const fallbackSkillNames = new Set(
+          fallbackCat.skills
+            .filter((s) => formData.skillIds.includes(s._id))
+            .map((s) => s.name)
+        );
+        const matchedSkillIds = convexSkills
+          .filter((s) => fallbackSkillNames.has(s.name))
+          .map((s) => s._id);
+        if (matchedSkillIds.length > 0) {
+          updateFormData({ skillIds: matchedSkillIds });
+        }
+      }
+    }
+  }, [formData.skillIds, convexSkills, formData.primaryCategoryId, updateFormData]);
 
   // Normalize category options (Convex DB vs Fallback)
   const categoriesList = useMemo(() => {

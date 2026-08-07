@@ -176,6 +176,19 @@ export function Step5Review({
       return;
     }
 
+    const hasFallbackId =
+      formData.primaryCategoryId?.startsWith("fallback_") ||
+      formData.cityId?.startsWith("fallback_") ||
+      formData.skillIds.some((id) => id.startsWith("fallback_")) ||
+      formData.areaIds.some((id) => id.startsWith("fallback_"));
+
+    if (hasFallbackId) {
+      setError(
+        "Your selected category, skills, city, or coverage areas contain placeholder demo data. Please return to Step 2 and Step 3 to re-select your options."
+      );
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {

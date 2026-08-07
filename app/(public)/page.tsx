@@ -8,7 +8,7 @@ import {
   Database,
   Key,
 } from "@phosphor-icons/react";
-import { SignInButton, Show } from "@clerk/nextjs";
+import { SignInButton, SignUpButton, Show } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -90,12 +90,20 @@ export default function LandingPage() {
           </Show>
 
           <Show when="signed-out">
-            <SignInButton mode="modal">
+            <SignUpButton mode="modal" forceRedirectUrl="/select-role" fallbackRedirectUrl="/select-role">
               <button
                 type="button"
                 className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
                 Get Started <span aria-hidden="true">→</span>
+              </button>
+            </SignUpButton>
+            <SignInButton mode="modal" signUpForceRedirectUrl="/select-role" signUpFallbackRedirectUrl="/select-role">
+              <button
+                type="button"
+                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-sm transition-colors duration-200 hover:bg-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+              >
+                Sign In
               </button>
             </SignInButton>
           </Show>

@@ -1,7 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useQuery } from "convex/react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useMutation } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -223,6 +223,8 @@ export function Step3Coverage({
     whatsappNumber?: string;
   }>({});
 
+  const seedInitialData = useMutation(api.public.seed.seedInitialData);
+
   const convexCities = useQuery(api.public.locations.listCities, {
     onlyActive: true,
   });
@@ -235,6 +237,54 @@ export function Step3Coverage({
         }
       : "skip"
   );
+
+  // Auto-seed database if empty
+  useEffect(() => {
+    if (convexCities !== undefined && convexCities.length === 0) {
+      seedInitialData().catch(console.error);
+    }
+  }, [convexCities, seedInitialData]);
+
+  // Auto-heal fallback city ID to real DB city ID
+  useEffect(() => {
+    if (formData.cityId?.startsWith("fallback_") && convexCities && convexCities.length > 0) {
+      const fallbackCity = FALLBACK_CITIES.find((c) => c._id === formData.cityId);
+      const matchedCity = convexCities.find(
+        (c) => c.code === fallbackCity?.code || c.name === fallbackCity?.name
+      );
+      if (matchedCity) {
+        updateFormData({ cityId: matchedCity._id, areaIds: [] });
+      }
+    }
+  }, [formData.cityId, convexCities, updateFormData]);
+
+  // Auto-heal fallback area IDs to real DB area IDs
+  useEffect(() => {
+    if (
+      formData.areaIds.some((id) => id.startsWith("fallback_")) &&
+      convexAreas &&
+      convexAreas.length > 0 &&
+      formData.cityId &&
+      !formData.cityId.startsWith("fallback_")
+    ) {
+      const fallbackCity = FALLBACK_CITIES.find((c) =>
+        c.areas.some((a) => formData.areaIds.includes(a._id))
+      );
+      if (fallbackCity) {
+        const fallbackAreaNames = new Set(
+          fallbackCity.areas
+            .filter((a) => formData.areaIds.includes(a._id))
+            .map((a) => a.name)
+        );
+        const matchedAreaIds = convexAreas
+          .filter((a) => fallbackAreaNames.has(a.name))
+          .map((a) => a._id);
+        if (matchedAreaIds.length > 0) {
+          updateFormData({ areaIds: matchedAreaIds });
+        }
+      }
+    }
+  }, [formData.areaIds, convexAreas, formData.cityId, updateFormData]);
 
   const citiesList = useMemo(() => {
     if (convexCities && convexCities.length > 0) {

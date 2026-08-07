@@ -24,6 +24,7 @@ import type * as private_helpers from "../private/helpers.js";
 import type * as public_categories from "../public/categories.js";
 import type * as public_locations from "../public/locations.js";
 import type * as public_numbers from "../public/numbers.js";
+import type * as public_seed from "../public/seed.js";
 import type * as services_ConvexDB from "../services/ConvexDB.js";
 import type * as users from "../users.js";
 
@@ -50,6 +51,7 @@ declare const fullApi: ApiFromModules<{
   "public/categories": typeof public_categories;
   "public/locations": typeof public_locations;
   "public/numbers": typeof public_numbers;
+  "public/seed": typeof public_seed;
   "services/ConvexDB": typeof services_ConvexDB;
   users: typeof users;
 }>;

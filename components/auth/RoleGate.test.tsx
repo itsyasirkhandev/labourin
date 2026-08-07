@@ -13,6 +13,8 @@ let currentPathname = "/customer";
 vi.mock("@clerk/nextjs", () => ({
   useAuth: () => authState,
   SignInButton: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  SignOutButton: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
+  UserButton: () => <div data-testid="user-button">UserButton</div>,
 }));
 
 vi.mock("next/navigation", () => ({

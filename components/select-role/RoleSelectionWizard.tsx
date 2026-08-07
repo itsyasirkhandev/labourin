@@ -6,6 +6,7 @@ import { useMutation, useQuery } from "convex/react";
 import { redirect, useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
+import { AppHeader } from "@/components/navigation/AppHeader";
 import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { SignInRequired } from "@/components/auth/SignInRequired";
 import { Button } from "@/components/ui/button";
@@ -84,8 +85,10 @@ function AuthedWizard() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-10 text-foreground">
-      <div className="w-full max-w-xl">
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <AppHeader />
+      <div className="flex flex-1 items-center justify-center px-4 py-10">
+        <div className="w-full max-w-xl">
         <div className="mb-8 flex items-center justify-center gap-2 text-xs font-medium text-muted-foreground">
           <span className={step === 1 ? "text-primary" : undefined}>1 · Welcome</span>
           <span aria-hidden="true">—</span>
@@ -176,6 +179,7 @@ function AuthedWizard() {
           </section>
         )}
       </div>
+    </div>
     </div>
   );
 }

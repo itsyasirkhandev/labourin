@@ -31,7 +31,11 @@ export default function ConvexClientProvider({
   const [convex] = useState(() => new ConvexReactClient(clientConfig.convexUrl));
 
   return (
-    <ClerkProvider>
+    <ClerkProvider
+      signUpForceRedirectUrl="/select-role"
+      signUpFallbackRedirectUrl="/select-role"
+      signInFallbackRedirectUrl="/"
+    >
       <ConvexProviderWithClerk client={convex} useAuth={useAuth}>
         <UserSyncTrigger />
         {children}
