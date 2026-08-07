@@ -13,3 +13,15 @@ export class ValidationError extends Schema.TaggedErrorClass<ValidationError>()(
 	message: Schema.String,
 	field: Schema.optional(Schema.String)
 }) {}
+
+export class RoleRequiredError extends Schema.TaggedErrorClass<RoleRequiredError>()("RoleRequiredError", {
+	message: Schema.String
+}) {}
+
+export class RoleAlreadySelectedError extends Schema.TaggedErrorClass<RoleAlreadySelectedError>()("RoleAlreadySelectedError", {
+	message: Schema.String
+}) {}
+
+export class DeletedAccountError extends Schema.TaggedErrorClass<DeletedAccountError>()("DeletedAccountError", {
+	message: Schema.String
+}) {}

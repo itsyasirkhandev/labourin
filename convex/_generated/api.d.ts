@@ -8,6 +8,7 @@
  * @module
  */
 
+import type * as authed_account from "../authed/account.js";
 import type * as authed_demo from "../authed/demo.js";
 import type * as authed_errors from "../authed/errors.js";
 import type * as authed_helpers from "../authed/helpers.js";
@@ -28,6 +29,7 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  "authed/account": typeof authed_account;
   "authed/demo": typeof authed_demo;
   "authed/errors": typeof authed_errors;
   "authed/helpers": typeof authed_helpers;

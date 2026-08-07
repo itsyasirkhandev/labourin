@@ -1,13 +1,21 @@
 {
   "$schema": "https://raw.githubusercontent.com/fallow-rs/fallow/main/schema.json",
   "ignorePatterns": [
-    "convex/_generated/**"
+    "convex/_generated/**",
+    "components/ui/**"
   ],
   "ignoreDependencies": [
     "@hookform/resolvers",
     "immer",
     "react-hook-form",
-    "convex-test"
+    "convex-test",
+    "@edge-runtime/vm",
+    "react-doctor",
+    "class-variance-authority",
+    "lucide-react",
+    "next-themes",
+    "radix-ui",
+    "sonner"
   ],
   "health": {
     "maxCrap": 250,
@@ -17,6 +25,7 @@
     "minOccurrences": 2
   },
   "rules": {
-    "unused-dependencies": "error"
+    "unused-dependencies": "error",
+    "css-dead-surface": "off"
   }
 }

@@ -6,14 +6,16 @@ import {
   ShieldCheck,
   Tree,
   Database,
-  LockKey,
+  Key,
 } from "@phosphor-icons/react";
 import { SignInButton, Show } from "@clerk/nextjs";
+import { useQuery } from "convex/react";
+import { api } from "@/convex/_generated/api";
 import ThemeToggle from "@/components/ThemeToggle";
 
 const features = [
   {
-    icon: LockKey,
+    icon: Key,
     title: "Clerk Auth",
     description: "Clerk authentication with Convex token sync for seamless auth.",
   },
@@ -84,28 +86,16 @@ export default function LandingPage() {
         {/* CTA Buttons */}
         <div className="mt-4 flex flex-col items-center gap-3 sm:flex-row">
           <Show when="signed-in">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              Open Dashboard <span aria-hidden="true">→</span>
-            </Link>
+            <SignedInCta />
           </Show>
 
           <Show when="signed-out">
-            <Link
-              href="/dashboard"
-              className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
-            >
-              Go to Dashboard <span aria-hidden="true">→</span>
-            </Link>
             <SignInButton mode="modal">
               <button
                 type="button"
-                className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-6 py-3 text-sm font-semibold text-card-foreground shadow-sm transition-colors duration-200 hover:bg-accent hover:text-accent-foreground"
+                className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
               >
-                <LockKey size={18} weight="bold" aria-hidden="true" />
-                Sign in
+                Get Started <span aria-hidden="true">→</span>
               </button>
             </SignInButton>
           </Show>
@@ -140,5 +130,36 @@ export default function LandingPage() {
         npx create-next-app <span aria-hidden="true">→</span> npx convex dev <span aria-hidden="true">→</span> build something real
       </p>
     </div>
+  );
+}
+
+// Mounted only inside <Show when="signed-in">, so the authed currentUser query
+// never fires while signed out (the guard rejects unauthenticated requests).
+function SignedInCta() {
+  const viewer = useQuery(api.authed.account.currentUser);
+
+  const viewerRole =
+    viewer?.role === "customer" || viewer?.role === "provider" ? viewer.role : null;
+
+  if (viewer === undefined || viewer === null) {
+    // Waiting for the Convex viewer to synchronize — keep the CTA hidden so we
+    // never show a misleading destination.
+    return null;
+  }
+
+  const destination =
+    viewerRole === "customer"
+      ? "/customer"
+      : viewerRole === "provider"
+        ? "/provider"
+        : "/select-role";
+
+  return (
+    <Link
+      href={destination}
+      className="inline-flex items-center gap-2 rounded-xl bg-primary px-6 py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-colors duration-200 hover:bg-primary/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring"
+    >
+      Open your space <span aria-hidden="true">→</span>
+    </Link>
   );
 }

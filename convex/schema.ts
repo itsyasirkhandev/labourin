@@ -10,10 +10,12 @@ export default defineSchema({
 		tokenIdentifier: v.string(),
 		clerkId: v.string(),
 		role: v.optional(v.union(v.literal('customer'), v.literal('provider'), v.literal('admin'))),
-		accountStatus: v.union(v.literal('active'), v.literal('deleted')),
+		// Optional for backwards compatibility with docs created before these
+		// fields existed; getOrCreateUser backfills them on the next sign-in.
+		accountStatus: v.optional(v.union(v.literal('active'), v.literal('deleted'))),
 		deletedAt: v.optional(v.number()),
-		createdAt: v.number(),
-		updatedAt: v.number()
+		createdAt: v.optional(v.number()),
+		updatedAt: v.optional(v.number())
 	})
 		.index('by_token', ['tokenIdentifier'])
 		.index('by_clerk_id', ['clerkId'])
