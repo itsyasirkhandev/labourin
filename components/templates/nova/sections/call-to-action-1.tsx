@@ -1,6 +1,9 @@
-import Link from "next/link";
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { DashboardCta } from "./dashboard-cta";
 import { ChevronRight } from "lucide-react";
+import { SignUpButton, Show } from "@clerk/nextjs";
 
 export default function CallToAction() {
   return (
@@ -8,23 +11,28 @@ export default function CallToAction() {
       <div className="mx-auto max-w-2xl px-6">
         <div className="text-center">
           <h2 className="text-balance font-serif text-4xl font-medium">
-            Need Emergency Repairs or Want Direct Job Leads?
+            Your Leaking Pipe Won&apos;t Fix Itself
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-lg text-balance text-base">
-            Connect with CNIC-verified local experts or start earning as a skilled service provider in Lahore, Karachi, and Islamabad today.
+            Find a CNIC-verified plumber, electrician, or AC technician in your neighborhood — ready to show up in hours, not days.
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-3">
-            <Button asChild size="lg" className="pr-2">
-              <Link href="/select-role">
-                <span>Find Local Workers</span>
-                <ChevronRight className="opacity-60" />
-              </Link>
-            </Button>
-            <Button asChild size="lg" variant="outline">
-              <Link href="/select-role">
-                <span>Register as Provider</span>
-              </Link>
-            </Button>
+            <Show when="signed-out">
+              <SignUpButton mode="modal" forceRedirectUrl="/select-role" fallbackRedirectUrl="/select-role">
+                <Button size="lg" className="pr-2">
+                  <span>Find Local Workers</span>
+                  <ChevronRight className="opacity-60" />
+                </Button>
+              </SignUpButton>
+              <SignUpButton mode="modal" forceRedirectUrl="/select-role" fallbackRedirectUrl="/select-role">
+                <Button size="lg" variant="outline">
+                  <span>Register as Provider</span>
+                </Button>
+              </SignUpButton>
+            </Show>
+            <Show when="signed-in">
+              <DashboardCta className="pr-2" />
+            </Show>
           </div>
         </div>
       </div>

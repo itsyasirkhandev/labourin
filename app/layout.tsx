@@ -22,11 +22,11 @@ const fontMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "LabourIn",
+  title: "LabourIn — Verified Local Workers, Ready Now",
   description:
-    "LabourIn connects customers with verified, available service providers.",
+    "Find CNIC-verified electricians, plumbers, and AC technicians in Lahore, Karachi, and Islamabad. Direct WhatsApp contact, zero commissions.",
   icons: {
-    icon: "/convex.svg",
+    icon: "/labourin-favicon.svg",
   },
 };
 

@@ -6,9 +6,9 @@ import Footer from "@/components/templates/nova/sections/footer-1";
 import HeroSection from "@/components/templates/nova/sections/hero-section-1";
 import Pricing from "@/components/templates/nova/sections/pricing-1";
 export const metadata = {
-  title: "LabourIn — Verified Service Providers",
+  title: "LabourIn — Verified Local Workers, Ready Now",
   description:
-    "LabourIn connects customers with verified, available service providers.",
+    "Find CNIC-verified electricians, plumbers, and AC technicians in Lahore, Karachi, and Islamabad. Direct WhatsApp contact, zero commissions.",
 };
 
 export default function HomePage() {

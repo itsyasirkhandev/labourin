@@ -1,9 +1,12 @@
-import Link from "next/link";
+"use client";
 import { Button } from "@/components/ui/button";
+import { DashboardCta } from "./dashboard-cta";
+import { SignUpButton, Show } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { HeroHeader } from "./header";
 import { ChevronRight, Zap, Wrench, Wind, Hammer, Paintbrush, ShieldCheck, PhoneCall, CheckCircle2 } from "lucide-react";
 import Image from "next/image";
+
 
 export default function HeroSection() {
   return (
@@ -12,7 +15,7 @@ export default function HeroSection() {
       <main className="overflow-hidden">
         <section className="bg-background">
           <div className="relative py-32 md:pt-44">
-            <div className="mask-radial-from-45% mask-radial-to-75% mask-radial-at-top mask-radial-[75%_100%] mask-t-from-50% lg:aspect-9/4 absolute inset-0 aspect-square lg:top-24 dark:opacity-30 dark:invert">
+            <div className="mask-radial-from-45% mask-radial-to-75% mask-radial-at-top mask-radial-[75%_100%] mask-t-from-50% lg:aspect-9/4 absolute inset-0 aspect-square lg:top-24 dark:opacity-20">
               <Image
                 src="https://images.unsplash.com/photo-1740516367177-ae20098c8786?q=80&w=2268&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D"
                 alt="hero background"
@@ -26,33 +29,38 @@ export default function HeroSection() {
               <div className="mx-auto max-w-2xl text-center">
                 <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-medium text-primary">
                   <CheckCircle2 className="size-3.5" />
-                  <span>Available in Lahore, Karachi & Islamabad</span>
+                  <span>Serving Lahore, Karachi & Islamabad</span>
                 </div>
                 <h1 className="text-balance font-serif text-4xl font-medium sm:text-5xl">
-                  Verified Local Experts, Delivered to Your Doorstep in 2 Hours.
+                  Verified Workers at Your Door in Hours
                 </h1>
                 <p className="text-muted-foreground mt-4 text-balance text-base sm:text-lg">
-                  Connect with CNIC-verified electricians, plumbers, and technicians ready right now in your area — zero commission fees, direct WhatsApp contact.
+                  Search by neighborhood, check real-time availability, and contact CNIC-verified workers directly on WhatsApp. No middlemen. No commissions. No hassle.
                 </p>
 
                 <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-                  <Button asChild size="lg" className="pr-2">
-                    <Link href="/select-role">
-                      <span className="text-nowrap">Find Local Workers</span>
-                      <ChevronRight className="opacity-60" />
-                    </Link>
-                  </Button>
-                  <Button asChild size="lg" variant="outline">
-                    <Link href="/select-role">
-                      <span>Register as a Provider</span>
-                    </Link>
-                  </Button>
+                  <Show when="signed-out">
+                    <SignUpButton mode="modal" forceRedirectUrl="/select-role" fallbackRedirectUrl="/select-role">
+                      <Button size="lg" className="pr-2">
+                        <span className="text-nowrap">Find Local Workers</span>
+                        <ChevronRight className="opacity-60" />
+                      </Button>
+                    </SignUpButton>
+                    <SignUpButton mode="modal" forceRedirectUrl="/select-role" fallbackRedirectUrl="/select-role">
+                      <Button size="lg" variant="outline">
+                        <span>Register as a Provider</span>
+                      </Button>
+                    </SignUpButton>
+                  </Show>
+                  <Show when="signed-in">
+                    <DashboardCta className="pr-2" />
+                  </Show>
                 </div>
               </div>
 
               <div className="mx-auto mt-20 max-w-2xl">
                 <p className="mb-6 text-center text-xs font-semibold tracking-wider text-muted-foreground uppercase">
-                  POPULAR SERVICES & TRUST GUARANTEES
+                  POPULAR SERVICES
                 </p>
                 <div className="grid scale-95 grid-cols-2 gap-4 sm:grid-cols-4 sm:gap-6">
                   <Card className="shadow-foreground/5 flex h-10 w-full flex-row items-center justify-center gap-2 rounded-xl px-3">

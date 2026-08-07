@@ -1,5 +1,8 @@
-import Link from "next/link";
+"use client";
+
 import { Button } from "@/components/ui/button";
+import { DashboardCta } from "./dashboard-cta";
+import { SignUpButton, Show } from "@clerk/nextjs";
 import { Card } from "@/components/ui/card";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,30 +10,30 @@ import { cn } from "@/lib/utils";
 const plans = [
   {
     name: "For Customers",
-    description: "Find and contact verified local workers whenever emergency repairs strike.",
+    description: "Find verified local workers whenever you need home repairs — plumbing, electrical, AC, carpentry.",
     price: "Rs. 0",
     period: " / forever free",
     features: [
-      "Search CNIC-verified local experts",
-      "Direct phone & WhatsApp numbers",
-      "Zero platform booking fees",
-      "Pay cash directly after job completion",
+      "Browse CNIC-verified workers near you",
+      "See real-time availability status",
+      "Get direct phone & WhatsApp contact",
+      "Pay cash directly — no platform fees",
     ],
-    cta: "Find a Worker",
+    cta: "Find a Worker Near You",
     highlighted: false,
   },
   {
     name: "For Skilled Providers",
-    description: "Get direct local job leads without paying per-lead fees or commissions.",
+    description: "Get direct job leads from customers in your area. No per-lead fees. No commission cuts.",
     price: "Rs. 0",
     period: " / forever free",
     features: [
       "Free CNIC identity verification",
-      "Real-time 'Available Now' toggle",
-      "Direct customer WhatsApp leads",
-      "Keep 100% of your hard-earned pay",
+      "Toggle your availability in real-time",
+      "Receive requests with job details & budget",
+      "Keep 100% of what you earn",
     ],
-    cta: "Register as Provider",
+    cta: "Start Getting Leads",
     highlighted: true,
   },
 ];
@@ -41,10 +44,10 @@ export default function Pricing() {
       <div className="mx-auto max-w-3xl px-6">
         <div className="">
           <h2 className="text-balance font-serif text-4xl font-medium">
-            100% Free & Transparent
+            Free for Everyone. Zero Commissions.
           </h2>
           <p className="text-muted-foreground mt-4 max-w-xl text-balance">
-            No commissions, no hidden middleman cuts, and no online payment hurdles. Direct platform access for everyone.
+            Most platforms take 15-30% from every job. LabourIn takes nothing. Workers keep every rupee they earn.
           </p>
         </div>
         <div className="grid-cols-1 sm:grid-cols-2 mt-12 grid gap-6">
@@ -79,13 +82,24 @@ export default function Pricing() {
                   </li>
                 ))}
               </ul>
-              <Button
-                variant={plan.highlighted ? "default" : "outline"}
-                className="mt-8 w-full"
-                asChild
-              >
-                <Link href="/select-role">{plan.cta}</Link>
-              </Button>
+              <Show when="signed-out">
+                <SignUpButton mode="modal" forceRedirectUrl="/select-role" fallbackRedirectUrl="/select-role">
+                  <Button
+                    variant={plan.highlighted ? "default" : "outline"}
+                    className="mt-8 w-full"
+                  >
+                    {plan.cta}
+                  </Button>
+                </SignUpButton>
+              </Show>
+              <Show when="signed-in">
+                <DashboardCta
+                  label={plan.cta}
+                  variant={plan.highlighted ? "default" : "outline"}
+                  className="mt-8 w-full"
+                  showChevron={false}
+                />
+              </Show>
             </Card>
           ))}
         </div>

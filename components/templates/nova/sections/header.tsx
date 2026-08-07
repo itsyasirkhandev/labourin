@@ -10,13 +10,18 @@ import ThemeToggle from "@/components/ThemeToggle";
 const LogoIcon = ({ className }: { className?: string }) => (
   <svg
     className={`size-6 ${className ?? ""}`}
-    viewBox="0 0 28 28"
+    viewBox="0 0 32 32"
     fill="none"
     xmlns="http://www.w3.org/2000/svg"
-    aria-label="logo icon"
+    aria-label="LabourIn logo"
   >
-    <rect x="0.75" y="0.75" width="26.5" height="26.5" rx="5.25" stroke="currentColor" strokeWidth="1.5" />
-    <path d="M8 7.5v13M8 14l6.5-6.5M8 14l7 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    <rect x="1" y="1" width="30" height="30" rx="6" stroke="currentColor" strokeWidth="2" />
+    <path
+      d="M10 22V10h2v10h6v2H10Z"
+      fill="currentColor"
+    />
+    <circle cx="22" cy="12" r="2.5" stroke="currentColor" strokeWidth="1.5" />
+    <path d="M22 14.5V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
   </svg>
 );
 

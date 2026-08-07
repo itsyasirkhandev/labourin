@@ -7,10 +7,10 @@ export default function Features() {
       <div className="mx-auto max-w-3xl px-6">
         <div>
           <h2 className="text-balance font-serif text-4xl font-medium">
-            Built for Trust, Speed, and Local Relevance
+            Why Thousands Choose LabourIn
           </h2>
           <p className="text-muted-foreground mt-4 text-balance">
-            Say goodbye to unverified workers and middleman commissions. LabourIn connects you directly with available professionals in your area.
+            Every worker is CNIC-verified. Every connection is direct. Every rupee goes straight to the person doing the work.
           </p>
         </div>
         <div className="@xl:grid-cols-2 mt-12 grid gap-3 *:p-6">
@@ -20,7 +20,7 @@ export default function Features() {
                 CNIC-Verified Professionals
               </h3>
               <p className="text-muted-foreground text-sm">
-                Every service provider submits mandatory CNIC credentials reviewed by our team before going live.
+                Every provider submits CNIC credentials reviewed by our team before appearing in search results. You always know who is coming to your home.
               </p>
             </div>
             <div
@@ -61,9 +61,9 @@ export default function Features() {
           </Card>
           <Card className="row-span-2 grid grid-rows-subgrid overflow-hidden">
             <div className="space-y-2">
-              <h3 className="text-foreground font-medium">Available Now Matching</h3>
+              <h3 className="text-foreground font-medium">Real-Time Availability</h3>
               <p className="text-muted-foreground text-sm">
-                Filter workers by real-time online status to find experts ready to arrive in 1–2 hours.
+                See which workers are online and ready right now. No guessing, no waiting — connect with someone who can arrive in 1–2 hours.
               </p>
             </div>
             <div aria-hidden className="relative h-44 translate-y-6">
@@ -78,7 +78,7 @@ export default function Features() {
             <div className="space-y-2">
               <h3 className="text-foreground font-medium">Neighborhood & Landmark Search</h3>
               <p className="text-muted-foreground mt-2 text-sm">
-                Search by specific area and local landmarks so workers find your location without hassle.
+                Search by your actual mohalla or landmark — DHA, Gulberg, F-7, Clifton — so workers can find you without confusion.
               </p>
             </div>
             <div
@@ -123,7 +123,7 @@ export default function Features() {
             <div className="space-y-2">
               <h3 className="font-medium">Direct Call & WhatsApp Access</h3>
               <p className="text-muted-foreground text-sm">
-                Once a job is accepted, contact your provider directly via phone or WhatsApp with zero middleman fees.
+                Once your request is accepted, call or WhatsApp your provider directly. No platform fee. No commission. Pay cash after the job is done.
               </p>
             </div>
 

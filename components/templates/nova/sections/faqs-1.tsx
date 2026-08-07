@@ -10,33 +10,39 @@ import Link from "next/link";
 const faqItems = [
   {
     id: "item-1",
-    question: "How does provider CNIC verification work?",
+    question: "How are service providers verified?",
     answer:
-      "All service providers must submit their CNIC identity details during onboarding. Our team manually verifies every profile before approving them to appear in search results.",
+      "Every provider submits their CNIC (national ID) during registration. Our team reviews each submission before the provider can appear in search results. Unverified profiles are never shown to customers.",
   },
   {
     id: "item-2",
-    question: "Which cities and areas are supported?",
+    question: "Which cities does LabourIn cover?",
     answer:
-      "LabourIn currently serves Lahore, Karachi, and Islamabad with neighborhood-level matching (e.g. DHA, Gulberg, Johar Town, F-7, Clifton, etc.).",
+      "We currently serve Lahore, Karachi, and Islamabad with neighborhood-level matching — areas like DHA, Gulberg, Johar Town, F-7, Clifton, and many more.",
   },
   {
     id: "item-3",
-    question: "How do I pay the worker?",
+    question: "How do payments work?",
     answer:
-      "LabourIn charges zero commissions and zero booking fees. You discuss the budget directly with your provider and pay them cash offline upon job completion.",
+      "LabourIn does not process payments. You discuss the budget directly with your provider and pay them cash after the job is complete. We charge zero commissions and zero booking fees.",
   },
   {
     id: "item-4",
-    question: "How fast can a worker arrive at my address?",
+    question: "How quickly can a worker arrive?",
     answer:
-      "By filtering providers marked 'Available Now', you connect with workers currently active in your area who can usually arrive within 1 to 2 hours.",
+      "Workers marked 'Available Now' are currently active in your area and can typically arrive within 1 to 2 hours. You can filter specifically for available workers when searching.",
   },
   {
     id: "item-5",
-    question: "How can tradespeople register as service providers?",
+    question: "I'm a tradesperson. How do I sign up as a provider?",
     answer:
-      "Simple! Click 'Register as Provider', complete the quick profile setup with your skills, city, areas served, and upload your CNIC. Once approved, you can start receiving direct leads.",
+      "Tap 'Register as a Provider', complete your profile with your skills and service areas, upload your CNIC, and wait for verification. Once approved, you start receiving direct leads from customers nearby.",
+  },
+  {
+    id: "item-6",
+    question: "Is LabourIn really free?",
+    answer:
+      "Yes — free for customers and free for service providers. No subscription fees, no per-lead charges, no commissions. We plan to sustain the platform through optional premium features in the future.",
   },
 ];
 
@@ -49,7 +55,7 @@ export default function FAQs() {
             Frequently Asked Questions
           </h2>
           <p className="text-muted-foreground mx-auto mt-4 max-w-md text-balance">
-            Everything you need to know about finding and offering services on LabourIn.
+            Quick answers about how LabourIn works for customers and service providers.
           </p>
         </div>
         <Card

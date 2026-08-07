@@ -4,10 +4,10 @@ export default function Content() {
       <div className="@2xl:grid-cols-2 mx-auto grid max-w-3xl gap-6 px-6">
         <div>
           <h2 className="text-balance font-serif text-4xl font-medium">
-            Get Help at Home in 3 Simple Steps
+            From Search to Doorstep in Minutes
           </h2>
           <p className="text-muted-foreground mt-4 text-sm leading-relaxed">
-            No complex signups or payment forms. Find verified local experts in minutes whenever emergency repairs strike.
+            No complicated forms. No payment gateways. Just pick, request, and connect.
           </p>
         </div>
 
@@ -20,7 +20,7 @@ export default function Content() {
               <span className="text-foreground font-medium block text-base mb-1">
                 Select City, Area & Category
               </span>
-              Pick your location (Lahore, Karachi, or Islamabad), neighborhood area, and the skilled trade you need.
+              Choose your city, pinpoint your neighborhood, and pick the trade you need — electrician, plumber, AC tech, or more.
             </p>
           </div>
 
@@ -30,9 +30,9 @@ export default function Content() {
             </span>
             <p className="text-muted-foreground text-sm">
               <span className="text-foreground font-medium block text-base mb-1">
-                Choose an Available & Verified Provider
+                Pick a Verified, Available Worker
               </span>
-              Browse profiles of workers currently online, active, and verified with valid CNIC credentials.
+              Browse profiles of workers who are online right now, CNIC-verified, and serving your area.
             </p>
           </div>
 
@@ -42,9 +42,9 @@ export default function Content() {
             </span>
             <p className="text-muted-foreground text-sm">
               <span className="text-foreground font-medium block text-base mb-1">
-                Submit Request & Connect Directly
+                Request, Accept, Connect
               </span>
-              Describe the problem and set your estimated budget. Once accepted, open direct phone or WhatsApp contact to complete the job offline.
+              Describe what needs fixing and set your budget. Once the worker accepts, you get their direct WhatsApp and phone number.
             </p>
           </div>
         </div>
