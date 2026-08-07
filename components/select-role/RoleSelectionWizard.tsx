@@ -4,8 +4,8 @@ import { useAuth } from "@clerk/nextjs";
 import { User, Wrench, ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import { useMutation, useQuery } from "convex/react";
 import { ConvexError } from "convex/values";
-import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { redirect, useRouter } from "next/navigation";
+import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { SignInRequired } from "@/components/auth/SignInRequired";
@@ -71,18 +71,11 @@ function AuthedWizard() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  // A user who already has a role must never see the wizard.
-  useEffect(() => {
-    if (viewer?.role === "customer" || viewer?.role === "provider") {
-      router.replace(roleDestinations[viewer.role]);
-    }
-  }, [viewer, router]);
-
   if (viewer === undefined || viewer === null) {
     return <FullScreenLoader label="Preparing your account..." />;
   }
   if (viewer.role === "customer" || viewer.role === "provider") {
-    return <FullScreenLoader label="Redirecting..." />;
+    redirect(roleDestinations[viewer.role]);
   }
 
   async function handleChoose(role: RoleOption) {
@@ -159,7 +152,7 @@ function AuthedWizard() {
                     type="button"
                     onClick={() => handleChoose(option.role)}
                     disabled={isSubmitting}
-                    className="group flex-1 cursor-pointer rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition-all duration-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group flex-1 cursor-pointer rounded-2xl border border-border bg-card p-6 text-left shadow-sm transition-shadow transition-opacity duration-200 hover:shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-ring disabled:cursor-not-allowed disabled:opacity-60"
                   >
                     <Icon
                       size={28}

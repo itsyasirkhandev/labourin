@@ -2,8 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { redirect } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { SignInRequired } from "@/components/auth/SignInRequired";
@@ -42,16 +41,6 @@ export function RoleGate({ role, children }: RoleGateProps) {
 
 function AuthedRoleGate({ role, children }: RoleGateProps) {
   const viewer = useQuery(api.authed.account.currentUser);
-  const router = useRouter();
-
-  const viewerRole =
-    viewer?.role === "customer" || viewer?.role === "provider" ? viewer.role : null;
-
-  useEffect(() => {
-    if (viewer === undefined || viewer === null) return;
-    if (viewerRole === role) return;
-    router.replace(viewerRole ? roleDestinations[viewerRole] : "/select-role");
-  }, [viewer, viewerRole, role, router]);
 
   if (viewer === undefined || viewer === null) {
     // Convex viewer not synchronized yet (webhook lag) — hold a brief state
@@ -59,11 +48,13 @@ function AuthedRoleGate({ role, children }: RoleGateProps) {
     return <FullScreenLoader label="Preparing your account..." />;
   }
 
+  const viewerRole =
+    viewer.role === "customer" || viewer.role === "provider" ? viewer.role : null;
+
   if (viewerRole !== role) {
-    // Redirecting to the resolved destination — keep a neutral screen so the
-    // guarded children never flash for the wrong role.
-    return <FullScreenLoader label="Redirecting..." />;
+    redirect(viewerRole ? roleDestinations[viewerRole] : "/select-role");
   }
 
   return <>{children}</>;
 }
+
