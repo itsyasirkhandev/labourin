@@ -51,13 +51,3 @@ jobs:
             pnpm convex deploy
           fi
 
-      - name: Deploy Preview
-        if: github.ref != 'refs/heads/main'
-        env:
-          CONVEX_DEPLOY_KEY: ${{ secrets.CONVEX_PREVIEW_KEY }}
-        run: |
-          if [ -z "$CONVEX_DEPLOY_KEY" ]; then
-            echo "::warning::CONVEX_PREVIEW_KEY is not set. Preview deployments will not work. Please ensure you have created a preview environment in Convex and set the CONVEX_PREVIEW_KEY secret in your GitHub repository."
-          else
-            pnpm convex deploy
-          fi
