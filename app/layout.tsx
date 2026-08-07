@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Source_Serif_4, JetBrains_Mono } from "next/font/google";
+import { Plus_Jakarta_Sans, Lora, Roboto_Mono } from "next/font/google";
 import "./globals.css";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 import { cn } from "@/lib/utils";
@@ -11,12 +11,12 @@ const fontSans = Plus_Jakarta_Sans({
   variable: "--font-sans",
 });
 
-const fontSerif = Source_Serif_4({
+const fontSerif = Lora({
   subsets: ["latin"],
   variable: "--font-serif",
 });
 
-const fontMono = JetBrains_Mono({
+const fontMono = Roboto_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
