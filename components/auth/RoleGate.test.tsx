@@ -8,6 +8,8 @@ const { routerReplace, authState } = vi.hoisted(() => ({
   authState: { isLoaded: true, isSignedIn: true },
 }));
 
+let currentPathname = "/customer";
+
 vi.mock("@clerk/nextjs", () => ({
   useAuth: () => authState,
   SignInButton: ({ children }: { children?: React.ReactNode }) => <>{children}</>,
@@ -15,6 +17,7 @@ vi.mock("@clerk/nextjs", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: routerReplace }),
+  usePathname: () => currentPathname,
   redirect: vi.fn((path: string) => {
     routerReplace(path);
     throw new Error(`MOCK_REDIRECT:${path}`);
@@ -25,14 +28,23 @@ vi.mock("convex/react", () => ({
   useQuery: vi.fn(),
 }));
 
-function mockViewer(role?: string | undefined) {
-  vi.mocked(useQuery).mockReturnValue({ _id: "user_1", role });
+function mockViewer(role?: string | undefined, onboardingStatus: string = "approved") {
+  let callIndex = 0;
+  vi.mocked(useQuery).mockImplementation(() => {
+    callIndex++;
+    if (callIndex > 1) {
+      return { status: onboardingStatus };
+    }
+    return { _id: "user_1", role };
+  });
 }
+
 
 describe("RoleGate", () => {
   beforeEach(() => {
     authState.isLoaded = true;
     authState.isSignedIn = true;
+    currentPathname = "/customer";
     routerReplace.mockClear();
     vi.mocked(useQuery).mockReset();
     mockViewer("customer");
@@ -81,7 +93,7 @@ describe("RoleGate", () => {
     expect(routerReplace).toHaveBeenCalledWith("/customer");
   });
 
-  it("renders children for the matching role without redirecting", async () => {
+  it("renders children for the matching customer role without redirecting", async () => {
     mockViewer("customer");
 
     render(
@@ -91,6 +103,50 @@ describe("RoleGate", () => {
     );
 
     expect(screen.getByText("customer content")).toBeInTheDocument();
+    expect(routerReplace).not.toHaveBeenCalled();
+  });
+
+  it("redirects unonboarded provider to /provider/onboarding", async () => {
+    currentPathname = "/provider";
+    mockViewer("provider", "unonboarded");
+
+    try {
+      render(
+        <RoleGate role="provider">
+          <div>provider dashboard</div>
+        </RoleGate>
+      );
+    } catch {}
+
+    expect(routerReplace).toHaveBeenCalledWith("/provider/onboarding");
+  });
+
+  it("redirects pending provider to /provider/pending", async () => {
+    currentPathname = "/provider";
+    mockViewer("provider", "pending");
+
+    try {
+      render(
+        <RoleGate role="provider">
+          <div>provider dashboard</div>
+        </RoleGate>
+      );
+    } catch {}
+
+    expect(routerReplace).toHaveBeenCalledWith("/provider/pending");
+  });
+
+  it("renders approved provider dashboard without redirecting", async () => {
+    currentPathname = "/provider";
+    mockViewer("provider", "approved");
+
+    render(
+      <RoleGate role="provider">
+        <div>provider dashboard</div>
+      </RoleGate>
+    );
+
+    expect(screen.getByText("provider dashboard")).toBeInTheDocument();
     expect(routerReplace).not.toHaveBeenCalled();
   });
 });

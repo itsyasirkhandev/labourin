@@ -1,5 +1,5 @@
 import { Context } from 'effect';
-import { GenericDatabaseReader, GenericDatabaseWriter } from 'convex/server';
+import { GenericDatabaseReader, GenericDatabaseWriter, StorageWriter } from 'convex/server';
 import { DataModel } from '../_generated/dataModel';
 
 /** @effect-leakable-service */
@@ -13,3 +13,7 @@ export class ConvexDBWriter extends Context.Service<
 	{ db: GenericDatabaseWriter<DataModel> }
 >()('ConvexDBWriter') {}
 
+export class ConvexStorageWriter extends Context.Service<
+	ConvexStorageWriter,
+	{ storage: StorageWriter }
+>()('ConvexStorageWriter') {}

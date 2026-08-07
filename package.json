@@ -6,7 +6,7 @@
     "dev": "convex dev --start \"next dev\"",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint . --ignore-pattern \"convex/_generated/**\"",
+    "lint": "eslint . --ignore-pattern \"convex/_generated/**\" --ignore-pattern \".agents/**\"",
     "typecheck": "tsc --noEmit",
     "convex:gen": "convex codegen",
     "test": "vitest",

@@ -25,3 +25,17 @@ export class RoleAlreadySelectedError extends Schema.TaggedErrorClass<RoleAlread
 export class DeletedAccountError extends Schema.TaggedErrorClass<DeletedAccountError>()("DeletedAccountError", {
 	message: Schema.String
 }) {}
+
+export class InvalidPhoneFormatError extends Schema.TaggedErrorClass<InvalidPhoneFormatError>()("InvalidPhoneFormatError", {
+	message: Schema.String,
+	phoneNumber: Schema.optional(Schema.String)
+}) {}
+
+export class InvalidCnicFormatError extends Schema.TaggedErrorClass<InvalidCnicFormatError>()("InvalidCnicFormatError", {
+	message: Schema.String,
+	cnicNumber: Schema.optional(Schema.String)
+}) {}
+
+export class InvalidHierarchyError extends Schema.TaggedErrorClass<InvalidHierarchyError>()("InvalidHierarchyError", {
+	message: Schema.String
+}) {}

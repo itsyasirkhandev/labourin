@@ -10,7 +10,7 @@ import { ConvexError, ObjectType, PropertyValidators } from 'convex/values';
 import { Context, Effect } from 'effect';
 import { UserIdentity } from 'convex/server';
 import { Doc } from '../_generated/dataModel';
-import { ConvexDB, ConvexDBWriter } from '../services/ConvexDB';
+import { ConvexDB, ConvexDBWriter, ConvexStorageWriter } from '../services/ConvexDB';
 
 /** @effect-leakable-service */
 export class AuthedContext extends Context.Service<
@@ -113,7 +113,7 @@ export const effectAuthedQuery = <Args extends PropertyValidators, R, E>(options
 
 export const effectAuthedMutation = <Args extends PropertyValidators, R, E>(options: {
 	args: Args;
-	handler: (args: ObjectType<Args>) => Effect.Effect<R, E, AuthedContext | ConvexDBWriter | ConvexDB>;
+	handler: (args: ObjectType<Args>) => Effect.Effect<R, E, AuthedContext | ConvexDBWriter | ConvexDB | ConvexStorageWriter>;
 }): RegisteredMutation<'public', ObjectType<Args>, Promise<R>> => {
 	return authedMutation({
 		args: options.args,
@@ -123,7 +123,8 @@ export const effectAuthedMutation = <Args extends PropertyValidators, R, E>(opti
 				options.handler(args as unknown as ObjectType<Args>).pipe(
 					Effect.provideService(AuthedContext, { identity: ctx.identity, viewer: ctx.viewer }),
 					Effect.provideService(ConvexDBWriter, { db: ctx.db }),
-					Effect.provideService(ConvexDB, { db: ctx.db })
+					Effect.provideService(ConvexDB, { db: ctx.db }),
+					Effect.provideService(ConvexStorageWriter, { storage: ctx.storage })
 				)
 			) as Promise<R>;
 		}

@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { SignInRequired } from "@/components/auth/SignInRequired";
@@ -41,6 +41,12 @@ export function RoleGate({ role, children }: RoleGateProps) {
 
 function AuthedRoleGate({ role, children }: RoleGateProps) {
   const viewer = useQuery(api.authed.account.currentUser);
+  const pathname = usePathname();
+
+  const onboardingStatus = useQuery(
+    api.authed.onboarding.getProviderOnboardingStatus,
+    viewer?.role === "provider" ? {} : "skip"
+  );
 
   if (viewer === undefined || viewer === null) {
     // Convex viewer not synchronized yet (webhook lag) — hold a brief state
@@ -55,6 +61,28 @@ function AuthedRoleGate({ role, children }: RoleGateProps) {
     redirect(viewerRole ? roleDestinations[viewerRole] : "/select-role");
   }
 
+  if (viewerRole === "provider") {
+    if (onboardingStatus === undefined) {
+      return <FullScreenLoader label="Checking verification status..." />;
+    }
+
+    const status = onboardingStatus.status;
+    const isOnboardingPage = pathname.startsWith("/provider/onboarding");
+    const isPendingPage = pathname.startsWith("/provider/pending");
+
+    if (status === "unonboarded" && !isOnboardingPage) {
+      redirect("/provider/onboarding");
+    }
+    if (status === "pending" && !isPendingPage) {
+      redirect("/provider/pending");
+    }
+    if (status === "rejected" && !isOnboardingPage) {
+      redirect("/provider/onboarding?resubmit=true");
+    }
+    if (status === "approved" && (isOnboardingPage || isPendingPage)) {
+      redirect("/provider");
+    }
+  }
+
   return <>{children}</>;
 }
-
