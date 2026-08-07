@@ -28,7 +28,7 @@ export function WizardProgressHeader({
         </div>
         <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
           <div
-            className="h-full bg-primary transition-all duration-300 ease-in-out"
+            className="h-full bg-primary transition-[width] duration-300 ease-in-out"
             style={{ width: `${(currentStep / WIZARD_STEPS.length) * 100}%` }}
           />
         </div>
@@ -44,7 +44,7 @@ export function WizardProgressHeader({
           {/* Connecting Line */}
           <div className="absolute left-0 top-1/2 -z-0 h-0.5 w-full -translate-y-1/2 bg-border">
             <div
-              className="h-full bg-primary transition-all duration-300 ease-in-out"
+              className="h-full bg-primary transition-[width] duration-300 ease-in-out"
               style={{ width: `${progressPercent}%` }}
             />
           </div>
@@ -62,7 +62,7 @@ export function WizardProgressHeader({
                   onClick={() => isClickable && onStepClick?.(step.id)}
                   aria-label={`Step ${step.id}: ${step.shortTitle}`}
                   className={cn(
-                    "flex size-9 items-center justify-center rounded-full border-2 text-xs font-bold transition-all",
+                    "flex size-9 items-center justify-center rounded-full border-2 text-xs font-bold transition-colors transition-shadow",
                     isCompleted &&
                       "border-primary bg-primary text-primary-foreground hover:bg-primary/90 cursor-pointer",
                     isActive &&
