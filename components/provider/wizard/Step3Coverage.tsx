@@ -228,11 +228,30 @@ export function Step3Coverage({
   const convexCities = useQuery(api.public.locations.listCities, {
     onlyActive: true,
   });
+
+  // Derived effective city ID (auto-healing fallback ID to Convex DB ID if needed)
+  const effectiveCityId = useMemo(() => {
+    if (
+      formData.cityId?.startsWith("fallback_") &&
+      convexCities &&
+      convexCities.length > 0
+    ) {
+      const fallbackCity = FALLBACK_CITIES.find(
+        (c) => c._id === formData.cityId
+      );
+      const matchedCity = convexCities.find(
+        (c) => c.code === fallbackCity?.code || c.name === fallbackCity?.name
+      );
+      if (matchedCity) return matchedCity._id;
+    }
+    return formData.cityId;
+  }, [formData.cityId, convexCities]);
+
   const convexAreas = useQuery(
     api.public.locations.listAreas,
-    formData.cityId && !formData.cityId.startsWith("fallback_")
+    effectiveCityId && !effectiveCityId.startsWith("fallback_")
       ? {
-          cityId: formData.cityId as Id<"cities">,
+          cityId: effectiveCityId as Id<"cities">,
           onlyActive: true,
         }
       : "skip"
@@ -245,46 +264,45 @@ export function Step3Coverage({
     }
   }, [convexCities, seedInitialData]);
 
-  // Auto-heal fallback city ID to real DB city ID
-  useEffect(() => {
-    if (formData.cityId?.startsWith("fallback_") && convexCities && convexCities.length > 0) {
-      const fallbackCity = FALLBACK_CITIES.find((c) => c._id === formData.cityId);
-      const matchedCity = convexCities.find(
-        (c) => c.code === fallbackCity?.code || c.name === fallbackCity?.name
-      );
-      if (matchedCity) {
-        updateFormData({ cityId: matchedCity._id, areaIds: [] });
-      }
-    }
-  }, [formData.cityId, convexCities, updateFormData]);
+  const areaIdSet = useMemo(
+    () => new Set(formData.areaIds),
+    [formData.areaIds]
+  );
 
-  // Auto-heal fallback area IDs to real DB area IDs
-  useEffect(() => {
+  // Derived effective area IDs (auto-healing fallback IDs to Convex DB IDs if needed)
+  const effectiveAreaIds = useMemo(() => {
+    const hasFallback = formData.areaIds.some((id) => id.startsWith("fallback_"));
     if (
-      formData.areaIds.some((id) => id.startsWith("fallback_")) &&
-      convexAreas &&
-      convexAreas.length > 0 &&
-      formData.cityId &&
-      !formData.cityId.startsWith("fallback_")
+      !hasFallback ||
+      !convexAreas ||
+      convexAreas.length === 0 ||
+      !effectiveCityId ||
+      effectiveCityId.startsWith("fallback_")
     ) {
-      const fallbackCity = FALLBACK_CITIES.find((c) =>
-        c.areas.some((a) => formData.areaIds.includes(a._id))
-      );
-      if (fallbackCity) {
-        const fallbackAreaNames = new Set(
-          fallbackCity.areas
-            .filter((a) => formData.areaIds.includes(a._id))
-            .map((a) => a.name)
-        );
-        const matchedAreaIds = convexAreas
-          .filter((a) => fallbackAreaNames.has(a.name))
-          .map((a) => a._id);
-        if (matchedAreaIds.length > 0) {
-          updateFormData({ areaIds: matchedAreaIds });
-        }
+      return formData.areaIds;
+    }
+
+    const fallbackCity = FALLBACK_CITIES.find((c) =>
+      c.areas.some((a) => areaIdSet.has(a._id))
+    );
+    if (!fallbackCity) return formData.areaIds;
+
+    const fallbackAreaNames = new Set<string>();
+    for (const a of fallbackCity.areas) {
+      if (areaIdSet.has(a._id)) {
+        fallbackAreaNames.add(a.name);
       }
     }
-  }, [formData.areaIds, convexAreas, formData.cityId, updateFormData]);
+
+    const matchedAreaIds: string[] = [];
+    for (const a of convexAreas) {
+      if (fallbackAreaNames.has(a.name)) {
+        matchedAreaIds.push(a._id);
+      }
+    }
+
+    return matchedAreaIds.length > 0 ? matchedAreaIds : formData.areaIds;
+  }, [formData.areaIds, areaIdSet, convexAreas, effectiveCityId]);
 
   const citiesList = useMemo(() => {
     if (convexCities && convexCities.length > 0) {
@@ -304,11 +322,11 @@ export function Step3Coverage({
   }, [convexCities]);
 
   const currentAreasList = useMemo(() => {
-    if (!formData.cityId) return [];
+    if (!effectiveCityId) return [];
 
-    if (formData.cityId.startsWith("fallback_")) {
+    if (effectiveCityId.startsWith("fallback_")) {
       const fallbackCity = FALLBACK_CITIES.find(
-        (c) => c._id === formData.cityId
+        (c) => c._id === effectiveCityId
       );
       return fallbackCity ? fallbackCity.areas : [];
     }
@@ -322,13 +340,13 @@ export function Step3Coverage({
     }
 
     const fallbackMatch = FALLBACK_CITIES.find(
-      (c) => c._id === formData.cityId
+      (c) => c._id === effectiveCityId
     );
     return fallbackMatch ? fallbackMatch.areas : [];
-  }, [formData.cityId, convexAreas]);
+  }, [effectiveCityId, convexAreas]);
 
   const handleCitySelect = (cityId: string) => {
-    if (cityId === formData.cityId) return;
+    if (cityId === effectiveCityId) return;
     updateFormData({
       cityId,
       areaIds: [],
@@ -337,18 +355,18 @@ export function Step3Coverage({
   };
 
   const selectedAreaIds = useMemo(
-    () => new Set(formData.areaIds),
-    [formData.areaIds]
+    () => new Set(effectiveAreaIds),
+    [effectiveAreaIds]
   );
 
   const toggleArea = (areaId: string) => {
     let updated: string[];
     if (selectedAreaIds.has(areaId)) {
-      updated = formData.areaIds.filter((id) => id !== areaId);
+      updated = effectiveAreaIds.filter((id) => id !== areaId);
     } else {
-      updated = [...formData.areaIds, areaId];
+      updated = [...effectiveAreaIds, areaId];
     }
-    updateFormData({ areaIds: updated });
+    updateFormData({ cityId: effectiveCityId, areaIds: updated });
     setErrors((prev) => ({ ...prev, areaIds: undefined }));
   };
 
@@ -373,11 +391,14 @@ export function Step3Coverage({
     e.preventDefault();
     const newErrors: typeof errors = {};
 
-    if (!formData.cityId) {
+    const finalCityId = effectiveCityId;
+    const finalAreaIds = effectiveAreaIds;
+
+    if (!finalCityId) {
       newErrors.cityId = "Please select an operating city.";
     }
 
-    if (formData.areaIds.length === 0) {
+    if (finalAreaIds.length === 0) {
       newErrors.areaIds = "Please select at least one area/neighborhood you cover.";
     }
 
@@ -398,6 +419,17 @@ export function Step3Coverage({
     }
 
     if (hasFormErrors(newErrors, setErrors)) return;
+
+    if (
+      finalCityId !== formData.cityId ||
+      finalAreaIds !== formData.areaIds
+    ) {
+      updateFormData({
+        cityId: finalCityId,
+        areaIds: finalAreaIds,
+      });
+    }
+
     onNext();
   };
 
@@ -406,12 +438,12 @@ export function Step3Coverage({
       <div className="space-y-6 rounded-xl border bg-card p-5 shadow-xs">
         <CityGrid
           citiesList={citiesList}
-          selectedCityId={formData.cityId}
+          selectedCityId={effectiveCityId}
           error={errors.cityId}
           onSelectCity={handleCitySelect}
         />
 
-        {formData.cityId && (
+        {effectiveCityId && (
           <AreaGrid
             areasList={currentAreasList}
             selectedAreaIds={selectedAreaIds}
