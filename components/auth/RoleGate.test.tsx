@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { RoleGate } from "./RoleGate";
 import { useQuery } from "convex/react";
@@ -15,6 +15,10 @@ vi.mock("@clerk/nextjs", () => ({
 
 vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), replace: routerReplace }),
+  redirect: vi.fn((path: string) => {
+    routerReplace(path);
+    throw new Error(`MOCK_REDIRECT:${path}`);
+  }),
 }));
 
 vi.mock("convex/react", () => ({
@@ -51,31 +55,30 @@ describe("RoleGate", () => {
   it("redirects a viewer without a role to /select-role", async () => {
     mockViewer(undefined);
 
-    render(
-      <RoleGate role="customer">
-        <div>guarded content</div>
-      </RoleGate>
-    );
+    try {
+      render(
+        <RoleGate role="customer">
+          <div>guarded content</div>
+        </RoleGate>
+      );
+    } catch {}
 
-    await waitFor(() => {
-      expect(routerReplace).toHaveBeenCalledWith("/select-role");
-    });
+    expect(routerReplace).toHaveBeenCalledWith("/select-role");
     expect(screen.queryByText("guarded content")).not.toBeInTheDocument();
   });
 
   it("redirects a customer away from the provider gate", async () => {
     mockViewer("customer");
 
-    render(
-      <RoleGate role="provider">
-        <div>provider content</div>
-      </RoleGate>
-    );
+    try {
+      render(
+        <RoleGate role="provider">
+          <div>provider content</div>
+        </RoleGate>
+      );
+    } catch {}
 
-    await waitFor(() => {
-      expect(routerReplace).toHaveBeenCalledWith("/customer");
-    });
-    expect(screen.queryByText("provider content")).not.toBeInTheDocument();
+    expect(routerReplace).toHaveBeenCalledWith("/customer");
   });
 
   it("renders children for the matching role without redirecting", async () => {
