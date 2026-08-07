@@ -2,7 +2,7 @@
 
 import { useAuth } from "@clerk/nextjs";
 import { useQuery } from "convex/react";
-import { redirect } from "next/navigation";
+import { redirect, usePathname } from "next/navigation";
 import { api } from "@/convex/_generated/api";
 import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { SignInRequired } from "@/components/auth/SignInRequired";
@@ -39,12 +39,30 @@ export function RoleGate({ role, children }: RoleGateProps) {
   return <AuthedRoleGate role={role}>{children}</AuthedRoleGate>;
 }
 
+function getProviderRedirectPath(
+  status: "unonboarded" | "pending" | "approved" | "rejected",
+  pathname: string
+): string | null {
+  const isOnboarding = pathname.startsWith("/provider/onboarding");
+  const isPending = pathname.startsWith("/provider/pending");
+
+  if (status === "unonboarded" && !isOnboarding) return "/provider/onboarding";
+  if (status === "pending" && !isPending) return "/provider/pending";
+  if (status === "rejected" && !isOnboarding) return "/provider/onboarding?resubmit=true";
+  if (status === "approved" && (isOnboarding || isPending)) return "/provider";
+  return null;
+}
+
 function AuthedRoleGate({ role, children }: RoleGateProps) {
   const viewer = useQuery(api.authed.account.currentUser);
+  const pathname = usePathname();
+
+  const onboardingStatus = useQuery(
+    api.authed.onboarding.getProviderOnboardingStatus,
+    viewer?.role === "provider" ? {} : "skip"
+  );
 
   if (viewer === undefined || viewer === null) {
-    // Convex viewer not synchronized yet (webhook lag) — hold a brief state
-    // instead of redirecting, so we never bounce into a redirect loop.
     return <FullScreenLoader label="Preparing your account..." />;
   }
 
@@ -55,6 +73,16 @@ function AuthedRoleGate({ role, children }: RoleGateProps) {
     redirect(viewerRole ? roleDestinations[viewerRole] : "/select-role");
   }
 
+  if (viewerRole === "provider") {
+    if (onboardingStatus === undefined) {
+      return <FullScreenLoader label="Checking verification status..." />;
+    }
+
+    const redirectPath = getProviderRedirectPath(onboardingStatus.status, pathname);
+    if (redirectPath) {
+      redirect(redirectPath);
+    }
+  }
+
   return <>{children}</>;
 }
-
