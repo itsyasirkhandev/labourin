@@ -73,14 +73,14 @@ export function WizardProgressHeader({
                   )}
                 >
                   {isCompleted ? (
-                    <Check className="size-4 stroke-[3]" />
+                    <Check strokeWidth={3} className="size-4" />
                   ) : (
                     <span>{step.id}</span>
                   )}
                 </button>
                 <span
                   className={cn(
-                    "mt-2 text-xs font-medium text-center max-w-[80px] line-clamp-1",
+                    "mt-2 text-xs font-medium text-center max-w-20 line-clamp-1",
                     isActive && "font-bold text-foreground",
                     isCompleted && "text-muted-foreground",
                     !isActive && !isCompleted && "text-muted-foreground/60"

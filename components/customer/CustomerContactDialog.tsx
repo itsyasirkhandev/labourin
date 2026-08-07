@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { useMutation } from "convex/react";
-import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import {
   Dialog,
@@ -17,20 +16,9 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Loader2, Phone, MessageSquare, AlertCircle } from "lucide-react";
 
-export function isValidPakistaniPhone(phone: string): boolean {
-  const regex = /^(?:\+923\d{9}|03\d{9})$/;
-  return regex.test(phone.trim());
-}
+import { isValidPakistaniPhone } from "@/lib/validation";
+import { getErrorMessage } from "@/lib/errors";
 
-function getErrorMessage(error: unknown): string {
-  if (error instanceof ConvexError && error.data && typeof error.data === "object") {
-    const data = error.data as { message?: unknown; data?: { message?: unknown } };
-    if (typeof data.message === "string") return data.message;
-    if (typeof data.data?.message === "string") return data.data.message;
-  }
-  if (error instanceof Error) return error.message;
-  return "An unexpected error occurred while saving your contact details.";
-}
 
 export interface CustomerContactDialogProps {
   open: boolean;
@@ -130,11 +118,11 @@ export function CustomerContactDialog({
         whatsappNumber: trimmedWhatsapp || undefined,
       });
 
-      setIsSubmitting(false);
       onSuccess?.();
       onOpenChange(false);
     } catch (err) {
       setServerError(getErrorMessage(err));
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -181,7 +169,7 @@ export function CustomerContactDialog({
             {phoneError ? (
               <p className="text-xs font-medium text-destructive">{phoneError}</p>
             ) : (
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Format: 03XXXXXXXXX (11 digits) or +923XXXXXXXXX
               </p>
             )}

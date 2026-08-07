@@ -3,13 +3,13 @@
 import { useAuth } from "@clerk/nextjs";
 import { User, Wrench, ArrowLeft, ArrowRight } from "@phosphor-icons/react";
 import { useMutation, useQuery } from "convex/react";
-import { ConvexError } from "convex/values";
 import { redirect, useRouter } from "next/navigation";
 import { useState } from "react";
 import { api } from "@/convex/_generated/api";
 import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { SignInRequired } from "@/components/auth/SignInRequired";
 import { Button } from "@/components/ui/button";
+import { getErrorMessage } from "@/lib/errors";
 
 type RoleOption = "customer" | "provider";
 
@@ -37,15 +37,6 @@ const roleDestinations: Record<RoleOption, string> = {
   customer: "/customer",
   provider: "/provider",
 };
-
-function getErrorMessage(error: unknown): string | null {
-  if (error instanceof ConvexError && error.data && typeof error.data === "object") {
-    const data = error.data as { message?: unknown; data?: { message?: unknown } };
-    if (typeof data.message === "string") return data.message;
-    if (typeof data.data?.message === "string") return data.data.message;
-  }
-  return null;
-}
 
 export function RoleSelectionWizard() {
   const { isLoaded, isSignedIn } = useAuth();
@@ -87,6 +78,7 @@ function AuthedWizard() {
       router.push(roleDestinations[role]);
     } catch (error) {
       setErrorMessage(getErrorMessage(error) ?? "Something went wrong setting your role. Please try again.");
+    } finally {
       setIsSubmitting(false);
     }
   }

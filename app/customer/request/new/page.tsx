@@ -56,6 +56,302 @@ const CITIES = [
   "Quetta",
 ];
 
+interface SuccessCardProps {
+  title: string;
+  category: string;
+  city: string;
+  area: string;
+  phoneNumber?: string;
+  onReset: () => void;
+}
+
+function SuccessCard({
+  title,
+  category,
+  city,
+  area,
+  phoneNumber,
+  onReset,
+}: SuccessCardProps) {
+  const categoryName = SERVICE_CATEGORIES.find((c) => c.id === category)?.name || category;
+
+  return (
+    <div className="mx-auto max-w-2xl px-4 py-8">
+      <Card className="border-primary/20 bg-card text-center p-8">
+        <CardContent className="flex flex-col items-center gap-4 pt-4">
+          <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
+            <CheckCircle2 className="size-8" />
+          </div>
+          <div className="space-y-1">
+            <h2 className="text-xl font-bold tracking-tight">
+              Service Request Created!
+            </h2>
+            <p className="text-xs text-muted-foreground max-w-md mx-auto">
+              Your service request &ldquo;{title}&rdquo; has been successfully submitted. Verified providers in {city} will be notified shortly.
+            </p>
+          </div>
+
+          <div className="w-full max-w-md rounded-lg border border-border bg-muted/40 p-4 text-left space-y-2 mt-4 text-xs">
+            <div className="flex justify-between py-1 border-b border-border/60">
+              <span className="text-muted-foreground">Category:</span>
+              <span className="font-medium">{categoryName}</span>
+            </div>
+            <div className="flex justify-between py-1 border-b border-border/60">
+              <span className="text-muted-foreground">Location:</span>
+              <span className="font-medium">{area}, {city}</span>
+            </div>
+            <div className="flex justify-between py-1">
+              <span className="text-muted-foreground">Contact:</span>
+              <span className="font-medium">{phoneNumber}</span>
+            </div>
+          </div>
+
+          <div className="flex gap-3 mt-6">
+            <Button asChild variant="outline">
+              <Link href="/customer">Back to Dashboard</Link>
+            </Button>
+            <Button onClick={onReset}>
+              Create Another Request
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+}
+
+interface ServiceDetailsFormCardProps {
+  category: string;
+  title: string;
+  description: string;
+  errors: { category?: string; title?: string; description?: string };
+  setCategory: (val: string) => void;
+  setTitle: (val: string) => void;
+  setDescription: (val: string) => void;
+  clearError: (field: "category" | "title" | "description") => void;
+}
+
+function ServiceDetailsFormCard({
+  category,
+  title,
+  description,
+  errors,
+  setCategory,
+  setTitle,
+  setDescription,
+  clearError,
+}: ServiceDetailsFormCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Wrench className="size-4 text-primary" />
+          Service Details
+        </CardTitle>
+        <CardDescription>
+          Select category and describe the work you need done.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="space-y-1.5">
+          <Label htmlFor="category" className="font-medium">
+            Service Category <span className="text-destructive">*</span>
+          </Label>
+          <Select value={category} onValueChange={(val) => {
+            setCategory(val);
+            if (errors.category) clearError("category");
+          }}>
+            <SelectTrigger id="category" className="w-full">
+              <SelectValue placeholder="Select service category..." />
+            </SelectTrigger>
+            <SelectContent>
+              {SERVICE_CATEGORIES.map((cat) => (
+                <SelectItem key={cat.id} value={cat.id}>
+                  {cat.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {errors.category && (
+            <p className="text-xs font-medium text-destructive">{errors.category}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="title" className="font-medium">
+            Request Title / Short Headline <span className="text-destructive">*</span>
+          </Label>
+          <Input
+            id="title"
+            placeholder="e.g. Need electrician to fix ceiling fan & circuit breaker"
+            value={title}
+            onChange={(e) => {
+              setTitle(e.target.value);
+              if (errors.title) clearError("title");
+            }}
+            className="w-full"
+          />
+          {errors.title && (
+            <p className="text-xs font-medium text-destructive">{errors.title}</p>
+          )}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="description" className="font-medium">
+            Job Description <span className="text-destructive">*</span>
+          </Label>
+          <Textarea
+            id="description"
+            rows={4}
+            placeholder="Describe the issue or task in detail. Mention any specific parts required or urgency..."
+            value={description}
+            onChange={(e) => {
+              setDescription(e.target.value);
+              if (errors.description) clearError("description");
+            }}
+            className="w-full min-h-24 resize-y"
+          />
+          {errors.description && (
+            <p className="text-xs font-medium text-destructive">{errors.description}</p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+interface LocationScheduleFormCardProps {
+  city: string;
+  area: string;
+  address: string;
+  timing: string;
+  budget: string;
+  errorArea?: string;
+  setCity: (val: string) => void;
+  setArea: (val: string) => void;
+  setAddress: (val: string) => void;
+  setTiming: (val: string) => void;
+  setBudget: (val: string) => void;
+  clearAreaError: () => void;
+}
+
+function LocationScheduleFormCard({
+  city,
+  area,
+  address,
+  timing,
+  budget,
+  errorArea,
+  setCity,
+  setArea,
+  setAddress,
+  setTiming,
+  setBudget,
+  clearAreaError,
+}: LocationScheduleFormCardProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <MapPin className="size-4 text-primary" />
+          Location & Schedule
+        </CardTitle>
+        <CardDescription>
+          Specify where and when the work needs to be performed.
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="city" className="font-medium">
+              City <span className="text-destructive">*</span>
+            </Label>
+            <Select value={city} onValueChange={setCity}>
+              <SelectTrigger id="city" className="w-full">
+                <SelectValue placeholder="Select city..." />
+              </SelectTrigger>
+              <SelectContent>
+                {CITIES.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {c}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="area" className="font-medium">
+              Area / Neighborhood <span className="text-destructive">*</span>
+            </Label>
+            <Input
+              id="area"
+              placeholder="e.g. Gulshan-e-Iqbal, Block 5"
+              value={area}
+              onChange={(e) => {
+                setArea(e.target.value);
+                if (errorArea) clearAreaError();
+              }}
+              className="w-full"
+            />
+            {errorArea && (
+              <p className="text-xs font-medium text-destructive">{errorArea}</p>
+            )}
+          </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="address" className="font-medium">
+            Street Address / Landmark <span className="text-xs text-muted-foreground">(Optional)</span>
+          </Label>
+          <Input
+            id="address"
+            placeholder="House / Shop #, Street name, landmark..."
+            value={address}
+            onChange={(e) => setAddress(e.target.value)}
+            className="w-full"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="timing" className="flex items-center gap-1.5 font-medium">
+              <Calendar className="size-3.5 text-muted-foreground" />
+              Preferred Timing
+            </Label>
+            <Select value={timing} onValueChange={setTiming}>
+              <SelectTrigger id="timing" className="w-full">
+                <SelectValue placeholder="Select timing..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asap">As soon as possible</SelectItem>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="tomorrow">Tomorrow</SelectItem>
+                <SelectItem value="this-week">Within this week</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-1.5">
+            <Label htmlFor="budget" className="flex items-center gap-1.5 font-medium">
+              <Banknote className="size-3.5 text-muted-foreground" />
+              Estimated Budget (PKR) <span className="text-xs text-muted-foreground">(Optional)</span>
+            </Label>
+            <Input
+              id="budget"
+              type="number"
+              placeholder="e.g. 1500"
+              value={budget}
+              onChange={(e) => setBudget(e.target.value)}
+              className="w-full"
+            />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export default function NewServiceRequestPage() {
   const currentUser = useQuery(api.authed.account.currentUser);
 
@@ -126,56 +422,21 @@ export default function NewServiceRequestPage() {
 
   if (isSuccess) {
     return (
-      <div className="mx-auto max-w-2xl px-4 py-8">
-        <Card className="border-primary/20 bg-card text-center p-8">
-          <CardContent className="flex flex-col items-center gap-4 pt-4">
-            <div className="flex size-14 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400">
-              <CheckCircle2 className="size-8" />
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-xl font-bold tracking-tight">
-                Service Request Created!
-              </h2>
-              <p className="text-xs text-muted-foreground max-w-md mx-auto">
-                Your service request &ldquo;{title}&rdquo; has been successfully submitted. Verified providers in {city} will be notified shortly.
-              </p>
-            </div>
-
-            <div className="w-full max-w-md rounded-lg border border-border bg-muted/40 p-4 text-left space-y-2 mt-4 text-xs">
-              <div className="flex justify-between py-1 border-b border-border/60">
-                <span className="text-muted-foreground">Category:</span>
-                <span className="font-medium">
-                  {SERVICE_CATEGORIES.find((c) => c.id === category)?.name || category}
-                </span>
-              </div>
-              <div className="flex justify-between py-1 border-b border-border/60">
-                <span className="text-muted-foreground">Location:</span>
-                <span className="font-medium">{area}, {city}</span>
-              </div>
-              <div className="flex justify-between py-1">
-                <span className="text-muted-foreground">Contact:</span>
-                <span className="font-medium">{currentUser?.phoneNumber}</span>
-              </div>
-            </div>
-
-            <div className="flex gap-3 mt-6">
-              <Button asChild variant="outline">
-                <Link href="/customer">Back to Dashboard</Link>
-              </Button>
-              <Button onClick={() => {
-                setIsSuccess(false);
-                setTitle("");
-                setDescription("");
-                setArea("");
-                setAddress("");
-                setBudget("");
-              }}>
-                Create Another Request
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      <SuccessCard
+        title={title}
+        category={category}
+        city={city}
+        area={area}
+        phoneNumber={currentUser?.phoneNumber}
+        onReset={() => {
+          setIsSuccess(false);
+          setTitle("");
+          setDescription("");
+          setArea("");
+          setAddress("");
+          setBudget("");
+        }}
+      />
     );
   }
 
@@ -200,181 +461,31 @@ export default function NewServiceRequestPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Wrench className="size-4 text-primary" />
-              Service Details
-            </CardTitle>
-            <CardDescription>
-              Select category and describe the work you need done.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-1.5">
-              <Label htmlFor="category" className="font-medium">
-                Service Category <span className="text-destructive">*</span>
-              </Label>
-              <Select value={category} onValueChange={(val) => {
-                setCategory(val);
-                if (errors.category) setErrors((prev) => ({ ...prev, category: undefined }));
-              }}>
-                <SelectTrigger id="category" className="w-full">
-                  <SelectValue placeholder="Select service category..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {SERVICE_CATEGORIES.map((cat) => (
-                    <SelectItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {errors.category && (
-                <p className="text-xs font-medium text-destructive">{errors.category}</p>
-              )}
-            </div>
+        <ServiceDetailsFormCard
+          category={category}
+          title={title}
+          description={description}
+          errors={errors}
+          setCategory={setCategory}
+          setTitle={setTitle}
+          setDescription={setDescription}
+          clearError={(field) => setErrors((prev) => ({ ...prev, [field]: undefined }))}
+        />
 
-            <div className="space-y-1.5">
-              <Label htmlFor="title" className="font-medium">
-                Request Title / Short Headline <span className="text-destructive">*</span>
-              </Label>
-              <Input
-                id="title"
-                placeholder="e.g. Need electrician to fix ceiling fan & circuit breaker"
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  if (errors.title) setErrors((prev) => ({ ...prev, title: undefined }));
-                }}
-                className="w-full"
-              />
-              {errors.title && (
-                <p className="text-xs font-medium text-destructive">{errors.title}</p>
-              )}
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="description" className="font-medium">
-                Job Description <span className="text-destructive">*</span>
-              </Label>
-              <Textarea
-                id="description"
-                rows={4}
-                placeholder="Describe the issue or task in detail. Mention any specific parts required or urgency..."
-                value={description}
-                onChange={(e) => {
-                  setDescription(e.target.value);
-                  if (errors.description) setErrors((prev) => ({ ...prev, description: undefined }));
-                }}
-                className="w-full min-h-24 resize-y"
-              />
-              {errors.description && (
-                <p className="text-xs font-medium text-destructive">{errors.description}</p>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="size-4 text-primary" />
-              Location & Schedule
-            </CardTitle>
-            <CardDescription>
-              Specify where and when the work needs to be performed.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="city" className="font-medium">
-                  City <span className="text-destructive">*</span>
-                </Label>
-                <Select value={city} onValueChange={setCity}>
-                  <SelectTrigger id="city" className="w-full">
-                    <SelectValue placeholder="Select city..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CITIES.map((c) => (
-                      <SelectItem key={c} value={c}>
-                        {c}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="area" className="font-medium">
-                  Area / Neighborhood <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="area"
-                  placeholder="e.g. Gulshan-e-Iqbal, Block 5"
-                  value={area}
-                  onChange={(e) => {
-                    setArea(e.target.value);
-                    if (errors.area) setErrors((prev) => ({ ...prev, area: undefined }));
-                  }}
-                  className="w-full"
-                />
-                {errors.area && (
-                  <p className="text-xs font-medium text-destructive">{errors.area}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label htmlFor="address" className="font-medium">
-                Street Address / Landmark <span className="text-xs text-muted-foreground">(Optional)</span>
-              </Label>
-              <Input
-                id="address"
-                placeholder="House / Shop #, Street name, landmark..."
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                className="w-full"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 pt-2">
-              <div className="space-y-1.5">
-                <Label htmlFor="timing" className="flex items-center gap-1.5 font-medium">
-                  <Calendar className="size-3.5 text-muted-foreground" />
-                  Preferred Timing
-                </Label>
-                <Select value={timing} onValueChange={setTiming}>
-                  <SelectTrigger id="timing" className="w-full">
-                    <SelectValue placeholder="Select timing..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="asap">As soon as possible</SelectItem>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="tomorrow">Tomorrow</SelectItem>
-                    <SelectItem value="this-week">Within this week</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-1.5">
-                <Label htmlFor="budget" className="flex items-center gap-1.5 font-medium">
-                  <Banknote className="size-3.5 text-muted-foreground" />
-                  Estimated Budget (PKR) <span className="text-xs text-muted-foreground">(Optional)</span>
-                </Label>
-                <Input
-                  id="budget"
-                  type="number"
-                  placeholder="e.g. 1500"
-                  value={budget}
-                  onChange={(e) => setBudget(e.target.value)}
-                  className="w-full"
-                />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <LocationScheduleFormCard
+          city={city}
+          area={area}
+          address={address}
+          timing={timing}
+          budget={budget}
+          errorArea={errors.area}
+          setCity={setCity}
+          setArea={setArea}
+          setAddress={setAddress}
+          setTiming={setTiming}
+          setBudget={setBudget}
+          clearAreaError={() => setErrors((prev) => ({ ...prev, area: undefined }))}
+        />
 
         <div className="flex items-center justify-end gap-3 pt-2">
           <Button asChild variant="outline">

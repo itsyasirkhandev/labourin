@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 import { useQuery } from "convex/react";
 import { api } from "@/convex/_generated/api";
 import {
@@ -19,11 +19,105 @@ import { FullScreenLoader } from "@/components/auth/FullScreenLoader";
 import { AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
-const DRAFT_STORAGE_KEY = "labourin_provider_onboarding_draft";
+const DRAFT_STORAGE_KEY = "provider_onboarding_draft_v1";
+
+function RejectedBanner({ reason }: { reason?: string }) {
+  return (
+    <div className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-xs">
+      <AlertCircle className="size-5 shrink-0 text-destructive mt-0.5" />
+      <div className="space-y-1">
+        <div className="flex items-center gap-2">
+          <h3 className="font-bold text-destructive text-sm">
+            Application Needs Revision
+          </h3>
+          <Badge variant="destructive" className="text-xs">
+            Rejected
+          </Badge>
+        </div>
+        <p className="text-destructive/90 leading-relaxed">
+          Reason: {reason || "Please review and update your profile details before resubmitting."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function StepContent({
+  currentStep,
+  formData,
+  updateFormData,
+  onNext,
+  onBack,
+  onGoToStep,
+  onSuccess,
+}: {
+  currentStep: WizardStepId;
+  formData: ProviderWizardFormData;
+  updateFormData: (patch: Partial<ProviderWizardFormData>) => void;
+  onNext: () => void;
+  onBack: () => void;
+  onGoToStep: (step: WizardStepId) => void;
+  onSuccess: () => void;
+}) {
+  switch (currentStep) {
+    case 1:
+      return (
+        <Step1Identity
+          formData={formData}
+          updateFormData={updateFormData}
+          onNext={onNext}
+        />
+      );
+    case 2:
+      return (
+        <Step2Services
+          formData={formData}
+          updateFormData={updateFormData}
+          onNext={onNext}
+          onBack={onBack}
+        />
+      );
+    case 3:
+      return (
+        <Step3Coverage
+          formData={formData}
+          updateFormData={updateFormData}
+          onNext={onNext}
+          onBack={onBack}
+        />
+      );
+    case 4:
+      return (
+        <Step4Verification
+          formData={formData}
+          updateFormData={updateFormData}
+          onNext={onNext}
+          onBack={onBack}
+        />
+      );
+    case 5:
+      return (
+        <Step5Review
+          formData={formData}
+          updateFormData={updateFormData}
+          onBack={onBack}
+          onGoToStep={onGoToStep}
+          onSuccess={onSuccess}
+        />
+      );
+  }
+}
 
 export default function ProviderOnboardingPage() {
   const router = useRouter();
   const onboardingStatus = useQuery(api.authed.onboarding.getProviderOnboardingStatus);
+
+  if (onboardingStatus?.status === "pending") {
+    redirect("/provider/pending");
+  }
+  if (onboardingStatus?.status === "approved") {
+    redirect("/provider");
+  }
 
   const [currentStep, setCurrentStep] = useState<WizardStepId>(1);
   const [hasPrefilledRejected, setHasPrefilledRejected] = useState(false);
@@ -49,16 +143,10 @@ export default function ProviderOnboardingPage() {
     });
   }, []);
 
-  // Redirect if already pending or approved, or prefill if rejected
+  // Prefill if rejected profile
   useEffect(() => {
-    if (!onboardingStatus) return;
-
-    if (onboardingStatus.status === "pending") {
-      router.replace("/provider/pending");
-    } else if (onboardingStatus.status === "approved") {
-      router.replace("/provider");
-    } else if (
-      onboardingStatus.status === "rejected" &&
+    if (
+      onboardingStatus?.status === "rejected" &&
       onboardingStatus.profile &&
       !hasPrefilledRejected
     ) {
@@ -80,20 +168,21 @@ export default function ProviderOnboardingPage() {
         }));
       });
     }
-  }, [onboardingStatus, router, hasPrefilledRejected]);
+  }, [onboardingStatus, hasPrefilledRejected]);
 
-  // 3. Save draft to localStorage whenever formData changes
+  // Save draft to localStorage whenever formData changes
   const updateFormData = useCallback((patch: Partial<ProviderWizardFormData>) => {
-    setFormData((prev) => {
-      const updated = { ...prev, ...patch };
-      try {
-        localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(updated));
-      } catch (e) {
-        console.warn("Failed to save draft to localStorage:", e);
-      }
-      return updated;
-    });
+    setFormData((prev) => ({ ...prev, ...patch }));
   }, []);
+
+  useEffect(() => {
+    if (!isHydrated) return;
+    try {
+      localStorage.setItem(DRAFT_STORAGE_KEY, JSON.stringify(formData));
+    } catch (e) {
+      console.warn("Failed to save draft to localStorage:", e);
+    }
+  }, [formData, isHydrated]);
 
   const handleNextStep = () => {
     if (currentStep < 5) {
@@ -129,27 +218,10 @@ export default function ProviderOnboardingPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-6 pb-12">
-      {/* Top Banner if Resubmitting Rejected Profile */}
       {onboardingStatus?.status === "rejected" && (
-        <div className="flex items-start gap-3 rounded-xl border border-destructive/40 bg-destructive/10 p-4 text-xs">
-          <AlertCircle className="size-5 shrink-0 text-destructive mt-0.5" />
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <h3 className="font-bold text-destructive text-sm">
-                Application Needs Revision
-              </h3>
-              <Badge variant="destructive" className="text-[10px]">
-                Rejected
-              </Badge>
-            </div>
-            <p className="text-destructive/90 leading-relaxed">
-              Reason: {onboardingStatus.profile?.rejectionReason || "Please review and update your profile details before resubmitting."}
-            </p>
-          </div>
-        </div>
+        <RejectedBanner reason={onboardingStatus.profile?.rejectionReason} />
       )}
 
-      {/* Header Title */}
       <div className="space-y-1">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">
           Provider Profile & Verification Onboarding
@@ -159,53 +231,21 @@ export default function ProviderOnboardingPage() {
         </p>
       </div>
 
-      {/* Progress Header */}
       <WizardProgressHeader
         currentStep={currentStep}
         onStepClick={handleGoToStep}
       />
 
-      {/* Step Components */}
       <div className="mt-4">
-        {currentStep === 1 && (
-          <Step1Identity
-            formData={formData}
-            updateFormData={updateFormData}
-            onNext={handleNextStep}
-          />
-        )}
-        {currentStep === 2 && (
-          <Step2Services
-            formData={formData}
-            updateFormData={updateFormData}
-            onNext={handleNextStep}
-            onBack={handleBackStep}
-          />
-        )}
-        {currentStep === 3 && (
-          <Step3Coverage
-            formData={formData}
-            updateFormData={updateFormData}
-            onNext={handleNextStep}
-            onBack={handleBackStep}
-          />
-        )}
-        {currentStep === 4 && (
-          <Step4Verification
-            formData={formData}
-            updateFormData={updateFormData}
-            onNext={handleNextStep}
-            onBack={handleBackStep}
-          />
-        )}
-        {currentStep === 5 && (
-          <Step5Review
-            formData={formData}
-            onBack={handleBackStep}
-            onGoToStep={handleGoToStep}
-            onSuccess={handleSubmissionSuccess}
-          />
-        )}
+        <StepContent
+          currentStep={currentStep}
+          formData={formData}
+          updateFormData={updateFormData}
+          onNext={handleNextStep}
+          onBack={handleBackStep}
+          onGoToStep={handleGoToStep}
+          onSuccess={handleSubmissionSuccess}
+        />
       </div>
     </div>
   );

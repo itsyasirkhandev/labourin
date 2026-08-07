@@ -98,15 +98,22 @@ export function Step2Services({
     setError(null);
   };
 
+  // Memoized Set for O(1) skill selection checks
+  const selectedSkillIds = useMemo(
+    () => new Set(formData.skillIds),
+    [formData.skillIds]
+  );
+
   const toggleSkill = (skillId: string) => {
-    const isSelected = formData.skillIds.includes(skillId);
-    let updated: string[];
-    if (isSelected) {
-      updated = formData.skillIds.filter((id) => id !== skillId);
+    if (selectedSkillIds.has(skillId)) {
+      updateFormData({
+        skillIds: formData.skillIds.filter((id) => id !== skillId),
+      });
     } else {
-      updated = [...formData.skillIds, skillId];
+      updateFormData({
+        skillIds: [...formData.skillIds, skillId],
+      });
     }
-    updateFormData({ skillIds: updated });
     if (error) setError(null);
   };
 
@@ -158,7 +165,7 @@ export function Step2Services({
                   <span className="font-medium text-sm">{cat.name}</span>
                   {isSelected && (
                     <Badge variant="default" className="size-6 p-0 flex items-center justify-center rounded-full">
-                      <Check className="size-3.5 stroke-[3]" />
+                      <Check strokeWidth={3} className="size-3.5" />
                     </Badge>
                   )}
                 </button>
@@ -185,7 +192,7 @@ export function Step2Services({
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                 {currentSkillsList.map((skill) => {
-                  const isSelected = formData.skillIds.includes(skill._id);
+                  const isSelected = selectedSkillIds.has(skill._id);
                   return (
                     <button
                       key={skill._id}
@@ -207,7 +214,7 @@ export function Step2Services({
                             : "border-muted-foreground/30 bg-background"
                         )}
                       >
-                        {isSelected && <Check className="size-3 stroke-[3]" />}
+                        {isSelected && <Check strokeWidth={3} className="size-3" />}
                       </div>
                     </button>
                   );

@@ -15,7 +15,8 @@
     "lucide-react",
     "next-themes",
     "radix-ui",
-    "sonner"
+    "sonner",
+    "tailwindcss"
   ],
   "health": {
     "maxCrap": 250,

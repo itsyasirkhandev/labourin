@@ -39,6 +39,20 @@ export function RoleGate({ role, children }: RoleGateProps) {
   return <AuthedRoleGate role={role}>{children}</AuthedRoleGate>;
 }
 
+function getProviderRedirectPath(
+  status: "unonboarded" | "pending" | "approved" | "rejected",
+  pathname: string
+): string | null {
+  const isOnboarding = pathname.startsWith("/provider/onboarding");
+  const isPending = pathname.startsWith("/provider/pending");
+
+  if (status === "unonboarded" && !isOnboarding) return "/provider/onboarding";
+  if (status === "pending" && !isPending) return "/provider/pending";
+  if (status === "rejected" && !isOnboarding) return "/provider/onboarding?resubmit=true";
+  if (status === "approved" && (isOnboarding || isPending)) return "/provider";
+  return null;
+}
+
 function AuthedRoleGate({ role, children }: RoleGateProps) {
   const viewer = useQuery(api.authed.account.currentUser);
   const pathname = usePathname();
@@ -49,8 +63,6 @@ function AuthedRoleGate({ role, children }: RoleGateProps) {
   );
 
   if (viewer === undefined || viewer === null) {
-    // Convex viewer not synchronized yet (webhook lag) — hold a brief state
-    // instead of redirecting, so we never bounce into a redirect loop.
     return <FullScreenLoader label="Preparing your account..." />;
   }
 
@@ -66,21 +78,9 @@ function AuthedRoleGate({ role, children }: RoleGateProps) {
       return <FullScreenLoader label="Checking verification status..." />;
     }
 
-    const status = onboardingStatus.status;
-    const isOnboardingPage = pathname.startsWith("/provider/onboarding");
-    const isPendingPage = pathname.startsWith("/provider/pending");
-
-    if (status === "unonboarded" && !isOnboardingPage) {
-      redirect("/provider/onboarding");
-    }
-    if (status === "pending" && !isPendingPage) {
-      redirect("/provider/pending");
-    }
-    if (status === "rejected" && !isOnboardingPage) {
-      redirect("/provider/onboarding?resubmit=true");
-    }
-    if (status === "approved" && (isOnboardingPage || isPendingPage)) {
-      redirect("/provider");
+    const redirectPath = getProviderRedirectPath(onboardingStatus.status, pathname);
+    if (redirectPath) {
+      redirect(redirectPath);
     }
   }
 

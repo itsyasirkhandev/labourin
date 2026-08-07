@@ -2,7 +2,6 @@
 
 import { useState, useMemo } from "react";
 import { useMutation, useQuery } from "convex/react";
-import { ConvexError } from "convex/values";
 import { api } from "@/convex/_generated/api";
 import { Id } from "@/convex/_generated/dataModel";
 import {
@@ -23,26 +22,59 @@ import {
   Loader2,
   Edit3,
 } from "lucide-react";
+import { getErrorMessage } from "@/lib/errors";
 
 interface Step5ReviewProps {
   formData: ProviderWizardFormData;
+  updateFormData: (patch: Partial<ProviderWizardFormData>) => void;
   onBack: () => void;
   onGoToStep: (step: WizardStepId) => void;
   onSuccess: () => void;
 }
 
-function getErrorMessage(error: unknown): string {
-  if (error instanceof ConvexError && error.data && typeof error.data === "object") {
-    const data = error.data as { message?: unknown; data?: { message?: unknown } };
-    if (typeof data.message === "string") return data.message;
-    if (typeof data.data?.message === "string") return data.data.message;
-  }
-  if (error instanceof Error) return error.message;
-  return "An unexpected error occurred while submitting your onboarding profile.";
+interface ReviewSectionCardProps {
+  title: string;
+  icon: React.ReactNode;
+  stepId: WizardStepId;
+  disabled: boolean;
+  onGoToStep: (step: WizardStepId) => void;
+  children: React.ReactNode;
+}
+
+function ReviewSectionCard({
+  title,
+  icon,
+  stepId,
+  disabled,
+  onGoToStep,
+  children,
+}: ReviewSectionCardProps) {
+  return (
+    <div className="rounded-xl border bg-muted/20 p-4 space-y-2">
+      <div className="flex items-center justify-between">
+        <span className="font-semibold flex items-center gap-1.5 text-foreground">
+          {icon}
+          {title}
+        </span>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={() => onGoToStep(stepId)}
+          disabled={disabled}
+          className="h-7 px-2 text-xs text-primary hover:text-primary/80"
+        >
+          <Edit3 className="size-3 mr-1" /> Edit
+        </Button>
+      </div>
+      {children}
+    </div>
+  );
 }
 
 export function Step5Review({
   formData,
+  updateFormData,
   onBack,
   onGoToStep,
   onSuccess,
@@ -51,11 +83,11 @@ export function Step5Review({
     api.authed.onboarding.submitProviderOnboarding
   );
 
-  const [termsAccepted, setTermsAccepted] = useState(formData.termsAccepted);
+  const termsAccepted = formData.termsAccepted;
+  const setTermsAccepted = (val: boolean) => updateFormData({ termsAccepted: val });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Queries for label resolution
   const convexCategories = useQuery(api.public.categories.listCategories, {
     onlyActive: true,
   });
@@ -75,7 +107,6 @@ export function Step5Review({
       : "skip"
   );
 
-  // Resolved Category Name
   const categoryName = useMemo(() => {
     if (convexCategories) {
       const match = convexCategories.find((c) => c._id === formData.primaryCategoryId);
@@ -85,23 +116,27 @@ export function Step5Review({
     return fallback ? fallback.name : "Selected Category";
   }, [convexCategories, formData.primaryCategoryId]);
 
-  // Resolved Skill Names
   const skillNames = useMemo(() => {
     if (convexSkills && convexSkills.length > 0) {
-      return formData.skillIds
-        .map((id) => convexSkills.find((s) => s._id === id)?.name)
-        .filter(Boolean) as string[];
+      const skillsMap = new Map(convexSkills.map((s) => [s._id as string, s.name]));
+      return formData.skillIds.reduce<string[]>((acc, id) => {
+        const name = skillsMap.get(id);
+        if (name) acc.push(name);
+        return acc;
+      }, []);
     }
     const fallbackCat = FALLBACK_CATEGORIES.find((c) => c._id === formData.primaryCategoryId);
     if (fallbackCat) {
-      return formData.skillIds
-        .map((id) => fallbackCat.skills.find((s) => s._id === id)?.name)
-        .filter(Boolean) as string[];
+      const fallbackMap = new Map(fallbackCat.skills.map((s) => [s._id, s.name]));
+      return formData.skillIds.reduce<string[]>((acc, id) => {
+        const name = fallbackMap.get(id);
+        if (name) acc.push(name);
+        return acc;
+      }, []);
     }
     return [];
   }, [convexSkills, formData.primaryCategoryId, formData.skillIds]);
 
-  // Resolved City Name
   const cityName = useMemo(() => {
     if (convexCities) {
       const match = convexCities.find((c) => c._id === formData.cityId);
@@ -111,18 +146,23 @@ export function Step5Review({
     return fallback ? fallback.name : "Selected City";
   }, [convexCities, formData.cityId]);
 
-  // Resolved Area Names
   const areaNames = useMemo(() => {
     if (convexAreas && convexAreas.length > 0) {
-      return formData.areaIds
-        .map((id) => convexAreas.find((a) => a._id === id)?.name)
-        .filter(Boolean) as string[];
+      const areasMap = new Map(convexAreas.map((a) => [a._id as string, a.name]));
+      return formData.areaIds.reduce<string[]>((acc, id) => {
+        const name = areasMap.get(id);
+        if (name) acc.push(name);
+        return acc;
+      }, []);
     }
     const fallbackCity = FALLBACK_CITIES.find((c) => c._id === formData.cityId);
     if (fallbackCity) {
-      return formData.areaIds
-        .map((id) => fallbackCity.areas.find((a) => a._id === id)?.name)
-        .filter(Boolean) as string[];
+      const fallbackMap = new Map(fallbackCity.areas.map((a) => [a._id, a.name]));
+      return formData.areaIds.reduce<string[]>((acc, id) => {
+        const name = fallbackMap.get(id);
+        if (name) acc.push(name);
+        return acc;
+      }, []);
     }
     return [];
   }, [convexAreas, formData.cityId, formData.areaIds]);
@@ -156,11 +196,11 @@ export function Step5Review({
         cnicNumber: formData.cnicNumber,
       });
 
-      setIsSubmitting(false);
       onSuccess();
     } catch (err) {
       console.error("Submission error:", err);
       setError(getErrorMessage(err));
+    } finally {
       setIsSubmitting(false);
     }
   };
@@ -181,49 +221,27 @@ export function Step5Review({
         )}
 
         <div className="grid grid-cols-1 gap-4 text-sm">
-          {/* Section 1: Identity */}
-          <div className="rounded-xl border bg-muted/20 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold flex items-center gap-1.5 text-foreground">
-                <User className="size-4 text-primary" />
-                Identity & Bio
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onGoToStep(1)}
-                disabled={isSubmitting}
-                className="h-7 px-2 text-xs text-primary hover:text-primary/80"
-              >
-                <Edit3 className="size-3 mr-1" /> Edit
-              </Button>
-            </div>
+          <ReviewSectionCard
+            title="Identity & Bio"
+            icon={<User className="size-4 text-primary" />}
+            stepId={1}
+            disabled={isSubmitting}
+            onGoToStep={onGoToStep}
+          >
             <div className="space-y-1 text-xs">
               <p><span className="font-medium text-foreground">Name:</span> {formData.displayName}</p>
               <p><span className="font-medium text-foreground">Experience:</span> {formData.experienceYears} Years</p>
               <p><span className="font-medium text-foreground">Summary:</span> {formData.bio}</p>
             </div>
-          </div>
+          </ReviewSectionCard>
 
-          {/* Section 2: Services */}
-          <div className="rounded-xl border bg-muted/20 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold flex items-center gap-1.5 text-foreground">
-                <Layers className="size-4 text-primary" />
-                Trade & Skills
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onGoToStep(2)}
-                disabled={isSubmitting}
-                className="h-7 px-2 text-xs text-primary hover:text-primary/80"
-              >
-                <Edit3 className="size-3 mr-1" /> Edit
-              </Button>
-            </div>
+          <ReviewSectionCard
+            title="Trade & Skills"
+            icon={<Layers className="size-4 text-primary" />}
+            stepId={2}
+            disabled={isSubmitting}
+            onGoToStep={onGoToStep}
+          >
             <div className="space-y-1 text-xs">
               <p><span className="font-medium text-foreground">Primary Category:</span> {categoryName}</p>
               <div className="flex flex-wrap gap-1.5 pt-1">
@@ -238,26 +256,15 @@ export function Step5Review({
                 )}
               </div>
             </div>
-          </div>
+          </ReviewSectionCard>
 
-          {/* Section 3: Coverage & Contact */}
-          <div className="rounded-xl border bg-muted/20 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold flex items-center gap-1.5 text-foreground">
-                <MapPin className="size-4 text-primary" />
-                Coverage & Contact
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onGoToStep(3)}
-                disabled={isSubmitting}
-                className="h-7 px-2 text-xs text-primary hover:text-primary/80"
-              >
-                <Edit3 className="size-3 mr-1" /> Edit
-              </Button>
-            </div>
+          <ReviewSectionCard
+            title="Coverage & Contact"
+            icon={<MapPin className="size-4 text-primary" />}
+            stepId={3}
+            disabled={isSubmitting}
+            onGoToStep={onGoToStep}
+          >
             <div className="space-y-1 text-xs">
               <p><span className="font-medium text-foreground">City:</span> {cityName}</p>
               <p><span className="font-medium text-foreground">Mobile Phone:</span> {formData.phoneNumber}</p>
@@ -280,26 +287,15 @@ export function Step5Review({
                 )}
               </div>
             </div>
-          </div>
+          </ReviewSectionCard>
 
-          {/* Section 4: CNIC Verification */}
-          <div className="rounded-xl border bg-muted/20 p-4 space-y-2">
-            <div className="flex items-center justify-between">
-              <span className="font-semibold flex items-center gap-1.5 text-foreground">
-                <ShieldCheck className="size-4 text-primary" />
-                CNIC Verification Documents
-              </span>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onGoToStep(4)}
-                disabled={isSubmitting}
-                className="h-7 px-2 text-xs text-primary hover:text-primary/80"
-              >
-                <Edit3 className="size-3 mr-1" /> Edit
-              </Button>
-            </div>
+          <ReviewSectionCard
+            title="CNIC Verification Documents"
+            icon={<ShieldCheck className="size-4 text-primary" />}
+            stepId={4}
+            disabled={isSubmitting}
+            onGoToStep={onGoToStep}
+          >
             <div className="space-y-1 text-xs">
               <p><span className="font-medium text-foreground">CNIC Number:</span> <span className="font-mono">{formData.cnicNumber}</span></p>
               <div className="flex items-center gap-3 pt-1">
@@ -311,10 +307,9 @@ export function Step5Review({
                 </Badge>
               </div>
             </div>
-          </div>
+          </ReviewSectionCard>
         </div>
 
-        {/* Terms & Consent Checkbox */}
         <div className="pt-2 border-t space-y-2">
           <div className="flex items-start gap-2.5">
             <input
@@ -335,7 +330,6 @@ export function Step5Review({
         </div>
       </div>
 
-      {/* Actions */}
       <div className="flex items-center justify-between gap-3 pt-2">
         <Button type="button" variant="outline" onClick={onBack} disabled={isSubmitting}>
           &larr; Back

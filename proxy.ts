@@ -1,19 +1,8 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-// Optimistic authorization layer only — Convex remains the authorization
-// authority. Signed-out users are bounced to Clerk sign-in before they can
-// reach any authenticated route; the role gate then resolves where they go.
-const isProtectedRoute = createRouteMatcher([
-  "/select-role(.*)",
-  "/customer(.*)",
-  "/provider(.*)",
-]);
-
-export default clerkMiddleware(async (auth, req) => {
-  if (isProtectedRoute(req)) {
-    await auth.protect();
-  }
-});
+// Optimistic authorization layer — Convex remains the authorization authority.
+// Resource auth checks and UI routing are handled within layouts, pages, and components.
+export default clerkMiddleware();
 
 export const config = {
   matcher: [
