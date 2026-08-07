@@ -1,5 +1,7 @@
-import { internalMutation } from "./_generated/server";
+import { internalMutation, MutationCtx } from "./_generated/server";
 import { v } from "convex/values";
+import { Doc } from "./_generated/dataModel";
+import { WithoutSystemFields } from "convex/server";
 
 // Explicit contract for the Clerk webhook payload fields this handler uses.
 // http.ts extracts these from the full Clerk event before calling the mutation,
@@ -13,6 +15,57 @@ const clerkUserData = v.object({
   phoneNumber: v.optional(v.string()),
 });
 
+async function findUserByClerkData(
+  db: MutationCtx['db'],
+  clerkId: string,
+  tokenIdentifier: string,
+  email?: string
+) {
+  let existing = await db
+    .query("users")
+    .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
+    .unique();
+
+  if (!existing) {
+    existing = await db
+      .query("users")
+      .withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
+      .unique();
+  }
+
+  if (!existing && email) {
+    existing = await db
+      .query("users")
+      .withIndex("by_email", (q) => q.eq("email", email))
+      .first();
+  }
+
+  return existing;
+}
+
+function computeClerkUserUpdates(
+  existing: Doc<"users">,
+  data: { email?: string; avatarUrl?: string; phoneNumber?: string },
+  name: string,
+  clerkId: string,
+  tokenIdentifier: string
+) {
+  const updates: Partial<WithoutSystemFields<Doc<"users">>> = {};
+  if (name && existing.name !== name) updates.name = name;
+  if (data.email && existing.email !== data.email) updates.email = data.email;
+  if (data.avatarUrl && existing.avatarUrl !== data.avatarUrl) updates.avatarUrl = data.avatarUrl;
+  if (data.phoneNumber && existing.phoneNumber !== data.phoneNumber) updates.phoneNumber = data.phoneNumber;
+  if (clerkId && existing.clerkId !== clerkId) updates.clerkId = clerkId;
+  if (tokenIdentifier && existing.tokenIdentifier !== tokenIdentifier) updates.tokenIdentifier = tokenIdentifier;
+
+  if (existing.accountStatus === "deleted") {
+    updates.accountStatus = "active";
+    updates.deletedAt = undefined;
+  }
+
+  return updates;
+}
+
 export const upsertFromClerk = internalMutation({
   args: { data: clerkUserData },
   async handler(ctx, { data }) {
@@ -25,55 +78,11 @@ export const upsertFromClerk = internalMutation({
     const domain = process.env.CLERK_FRONTEND_API_URL || process.env.CLERK_JWT_ISSUER_DOMAIN;
     const tokenIdentifier = domain ? `${domain}|${clerkId}` : `clerk|${clerkId}`;
 
-    // 1. Check by clerkId
-    let existing = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", clerkId))
-      .unique();
-
-    // 2. Check by tokenIdentifier
-    if (!existing) {
-      existing = await ctx.db
-        .query("users")
-        .withIndex("by_token", (q) => q.eq("tokenIdentifier", tokenIdentifier))
-        .unique();
-    }
-
-    // 3. Check by email if present (Facebook accounts may not expose one)
-    if (!existing && email) {
-      existing = await ctx.db
-        .query("users")
-        .withIndex("by_email", (q) => q.eq("email", email))
-        .first();
-    }
-
+    const existing = await findUserByClerkData(ctx.db, clerkId, tokenIdentifier, email);
     const now = Date.now();
 
     if (existing) {
-      const updates: {
-        name?: string;
-        email?: string;
-        avatarUrl?: string;
-        phoneNumber?: string;
-        clerkId?: string;
-        tokenIdentifier?: string;
-        accountStatus?: "active" | "deleted";
-        deletedAt?: number;
-        updatedAt?: number;
-      } = {};
-      if (name && existing.name !== name) updates.name = name;
-      if (email && existing.email !== email) updates.email = email;
-      if (avatarUrl && existing.avatarUrl !== avatarUrl) updates.avatarUrl = avatarUrl;
-      if (phoneNumber && existing.phoneNumber !== phoneNumber) updates.phoneNumber = phoneNumber;
-      if (clerkId && existing.clerkId !== clerkId) updates.clerkId = clerkId;
-      if (tokenIdentifier && existing.tokenIdentifier !== tokenIdentifier) updates.tokenIdentifier = tokenIdentifier;
-
-      // Reactivate a soft-deleted account when the user re-registers.
-      if (existing.accountStatus === "deleted") {
-        updates.accountStatus = "active";
-        updates.deletedAt = undefined;
-      }
-
+      const updates = computeClerkUserUpdates(existing, data, name, clerkId, tokenIdentifier);
       if (Object.keys(updates).length > 0) {
         updates.updatedAt = now;
         await ctx.db.patch(existing._id, updates);
