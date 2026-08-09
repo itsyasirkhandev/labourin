@@ -102,6 +102,7 @@ export const HeroHeader = () => {
                     <li key={item.name}>
                       <Link
                         href={item.href}
+                        onClick={() => setMenuState(false)}
                         className="text-muted-foreground hover:text-accent-foreground block transition-colors duration-150"
                       >
                         <span>{item.name}</span>
