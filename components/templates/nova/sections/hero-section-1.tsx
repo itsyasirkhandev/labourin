@@ -32,7 +32,7 @@ export default function HeroSection() {
                   <span>Serving Lahore, Karachi & Islamabad</span>
                 </div>
                 <h1 className="text-balance font-serif text-4xl font-medium sm:text-5xl">
-                  Verified Workers at Your Door in Hours
+                  Book active neighborhood handymen with live area filters in 2 minutes
                 </h1>
                 <p className="text-muted-foreground mt-4 text-balance text-base sm:text-lg">
                   Search by neighborhood, check real-time availability, and contact CNIC-verified workers directly on WhatsApp. No middlemen. No commissions. No hassle.
