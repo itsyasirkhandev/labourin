@@ -1,5 +1,11 @@
 @import "tailwindcss";
 
+/* Hide Clerk "Secured by" footer and "Development mode" badge */
+.cl-footerItem,
+[data-clerk-dev-mode-notice] {
+  display: none !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {
